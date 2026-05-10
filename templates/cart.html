@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping Cart - JimmyElectronic{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 py-12 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">Your Cart</h1>
+        
+        {% if cart_items %}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 space-y-4">
+                {% for item in cart_items %}
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 flex flex-col sm:flex-row items-center gap-6">
+                    <div class="w-24 h-24 shrink-0 bg-gray-100 rounded-xl overflow-hidden">
+                        {% if item.product.images %}
+                        <img src="{{ url_for('static', filename='uploads/products/' + item.product.images[0].filename) }}" class="w-full h-full object-cover">
+                        {% endif %}
+                    </div>
+                    <div class="flex-1 text-center sm:text-left">
+                        <h3 class="text-lg font-semibold text-gray-900">{{ item.product.name }}</h3>
+                        <p class="text-jimmy-red font-bold mt-1">₦{{ "{:,.2f}".format(item.product.price) }}</p>
+                        
+                        <div class="text-xs text-orange-500 mt-2 font-medium flex items-center justify-center sm:justify-start gap-1">
+                            <i class="fa-regular fa-clock"></i> Reserved until {{ item.reserved_until.strftime('%H:%M') }}
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-6">
+                        <form action="{{ url_for('checkout_auth.update_cart_quantity', item_id=item.id) }}" method="POST" class="flex items-center gap-2">
+                            <label class="text-sm font-medium text-gray-700 hidden sm:block">Qty:</label>
+                            <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.product.available_stock + item.quantity }}" class="w-16 border border-gray-200 rounded-lg text-center py-1.5 focus:outline-none focus:border-jimmy-red" onchange="this.form.submit()">
+                        </form>
+                        <form action="{{ url_for('checkout_auth.remove_from_cart', item_id=item.id) }}" method="POST">
+                            <button type="submit" class="w-10 h-10 rounded-full bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-700 transition flex items-center justify-center">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-24">
+                    <h3 class="font-bold text-gray-900 text-lg mb-4">Order Summary</h3>
+                    <div class="space-y-3 mb-6">
+                        <div class="flex justify-between text-gray-600">
+                            <span>Subtotal</span>
+                            <span class="font-medium text-gray-900">₦{{ "{:,.2f}".format(total) }}</span>
+                        </div>
+                        <div class="flex justify-between text-gray-600">
+                            <span>Shipping</span>
+                            <span class="font-medium text-green-600">Calculated at checkout</span>
+                        </div>
+                    </div>
+                    
+                    <div class="pt-4 border-t border-gray-100 mb-6">
+                        <div class="flex justify-between items-end">
+                            <span class="font-semibold text-gray-900">Total</span>
+                            <span class="text-2xl font-bold text-jimmy-red">₦{{ "{:,.2f}".format(total) }}</span>
+                        </div>
+                    </div>
+                    
+                    <a href="{{ url_for('checkout_auth.checkout') }}" class="w-full block text-center bg-jimmy-red text-white py-3.5 rounded-xl font-bold hover:bg-red-800 transition shadow-sm">
+                        Proceed to Checkout
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center max-w-2xl mx-auto">
+            <div class="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
+                <i class="fa-solid fa-cart-shopping text-4xl"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-3">Your cart is empty</h2>
+            <p class="text-gray-500 mb-8">Looks like you haven't added anything to your cart yet.</p>
+            <a href="{{ url_for('shop_auth.shop') }}" class="inline-flex items-center gap-2 bg-jimmy-red text-white px-8 py-3 rounded-xl font-semibold hover:bg-red-800 transition">
+                <i class="fa-solid fa-arrow-left"></i> Continue Shopping
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

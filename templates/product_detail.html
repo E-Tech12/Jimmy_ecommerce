@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} - JimmyElectronic{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 py-12 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="mb-6">
+            <a href="{{ url_for('shop_auth.shop') }}" class="text-gray-500 hover:text-jimmy-red transition flex items-center gap-2 text-sm font-medium">
+                <i class="fa-solid fa-arrow-left"></i> Back to Shop
+            </a>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2">
+                
+                <!-- Image Gallery -->
+                <div class="p-8 md:border-r border-gray-100 bg-gray-50/50">
+                    <div class="aspect-w-1 aspect-h-1 w-full bg-white rounded-2xl border border-gray-100 overflow-hidden mb-4 relative" id="main-image-container">
+                        {% if product.images %}
+                            <img id="main-image" src="{{ url_for('static', filename='uploads/products/' + product.images[0].filename) }}" alt="{{ product.name }}" class="w-full h-full object-cover object-center">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center text-gray-400">
+                                <i class="fa-solid fa-image text-6xl"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if product.images and product.images|length > 1 %}
+                    <div class="grid grid-cols-5 gap-3">
+                        {% for img in product.images %}
+                        <div class="aspect-w-1 aspect-h-1 rounded-xl border-2 {% if loop.index0 == 0 %}border-jimmy-red{% else %}border-transparent hover:border-gray-200{% endif %} overflow-hidden cursor-pointer transition-colors thumbnail-container" onclick="updateMainImage(this, '{{ url_for('static', filename='uploads/products/' + img.filename) }}')">
+                            <img src="{{ url_for('static', filename='uploads/products/' + img.filename) }}" class="w-full h-full object-cover">
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Product Info -->
+                <div class="p-8 lg:p-12 flex flex-col justify-center relative">
+                    
+                    <!-- Favourite Button -->
+                    <div class="absolute top-8 right-8">
+                        <form action="{{ url_for('shop_auth.toggle_favourite', product_id=product.id) }}" method="POST">
+                            <button type="submit" class="w-12 h-12 rounded-full flex items-center justify-center transition {% if is_favourite %}bg-red-50 text-jimmy-red hover:bg-red-100{% else %}bg-gray-50 text-gray-400 hover:text-jimmy-red hover:bg-red-50{% endif %}">
+                                <i class="fa-{% if is_favourite %}solid{% else %}regular{% endif %} fa-heart text-xl"></i>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="text-sm font-medium text-jimmy-red mb-3 flex gap-2">
+                        {% if product.category %}<span>{{ product.category.name }}</span>{% endif %}
+                        {% if product.is_new_arrival %}<span class="bg-jimmy-red text-white px-2 py-0.5 rounded text-[10px] uppercase tracking-wide">New</span>{% endif %}
+                    </div>
+                    
+                    <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight mb-4">{{ product.name }}</h1>
+                    
+                    <div class="flex items-end gap-4 mb-6">
+                        <span class="text-4xl font-extrabold text-gray-900">₦{{ "{:,.2f}".format(product.price) }}</span>
+                        {% if product.is_installmental_payment %}
+                        <span class="text-sm font-medium text-green-600 bg-green-50 px-2.5 py-1 rounded-lg border border-green-100 mb-1 flex items-center gap-1">
+                            <i class="fa-solid fa-money-bill-transfer"></i> Installment Eligible
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="prose prose-sm text-gray-600 mb-8 max-w-none">
+                        <p>{{ product.description }}</p>
+                    </div>
+
+                    <div class="mt-auto">
+                        <div class="mb-6">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm font-medium text-gray-700">Availability</span>
+                                {% if product.available_stock > 10 %}
+                                    <span class="text-sm font-semibold text-green-600">In Stock</span>
+                                {% elif product.available_stock > 0 %}
+                                    <span class="text-sm font-semibold text-orange-500">Only {{ product.available_stock }} left</span>
+                                {% else %}
+                                    <span class="text-sm font-semibold text-red-600">Out of Stock</span>
+                                {% endif %}
+                            </div>
+                            <!-- Stock Bar -->
+                            <div class="w-full bg-gray-100 rounded-full h-2">
+                                {% set stock_percent = (product.available_stock / 50) * 100 %}
+                                {% set stock_percent = stock_percent if stock_percent <= 100 else 100 %}
+                                <div class="h-2 rounded-full {% if product.available_stock > 10 %}bg-green-500{% elif product.available_stock > 0 %}bg-orange-500{% else %}bg-red-500{% endif %}" style="width: {{ stock_percent }}%"></div>
+                            </div>
+                        </div>
+
+                        <form action="{{ url_for('shop_auth.add_to_cart', product_id=product.id) }}" method="POST" class="flex flex-col sm:flex-row gap-4">
+                            <div class="flex items-center border border-gray-200 rounded-xl bg-white w-32 shrink-0">
+                                <button type="button" class="w-10 h-12 flex items-center justify-center text-gray-500 hover:text-jimmy-red transition" onclick="document.getElementById('qty').stepDown()">
+                                    <i class="fa-solid fa-minus text-xs"></i>
+                                </button>
+                                <input type="number" id="qty" name="quantity" value="1" min="1" max="{{ product.available_stock }}" class="w-full h-12 text-center text-gray-900 font-semibold bg-transparent focus:outline-none" {% if product.available_stock == 0 %}disabled{% endif %}>
+                                <button type="button" class="w-10 h-12 flex items-center justify-center text-gray-500 hover:text-jimmy-red transition" onclick="document.getElementById('qty').stepUp()">
+                                    <i class="fa-solid fa-plus text-xs"></i>
+                                </button>
+                            </div>
+                            
+                            <button type="submit" class="flex-1 bg-jimmy-red text-white h-12 rounded-xl font-bold text-lg flex items-center justify-center gap-2 hover:bg-red-800 transition shadow-sm {% if product.available_stock == 0 %}opacity-50 cursor-not-allowed{% endif %}" {% if product.available_stock == 0 %}disabled{% endif %}>
+                                <i class="fa-solid fa-cart-shopping"></i> 
+                                {% if product.available_stock == 0 %}Out of Stock{% else %}Add to Cart (Lock for 15m){% endif %}
+                            </button>
+                        </form>
+                        
+                        <div class="mt-4 flex items-center justify-center gap-6 text-xs font-medium text-gray-500">
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield-halved text-gray-400"></i> Secure Checkout</span>
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-truck-fast text-gray-400"></i> Fast Delivery</span>
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-rotate-left text-gray-400"></i> 7-Day Returns</span>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateMainImage(element, src) {
+    document.getElementById('main-image').src = src;
+    
+    // Update border highlights
+    document.querySelectorAll('.thumbnail-container').forEach(el => {
+        el.classList.remove('border-jimmy-red');
+        el.classList.add('border-transparent');
+    });
+    
+    element.classList.remove('border-transparent');
+    element.classList.add('border-jimmy-red');
+}
+</script>
+{% endblock %}

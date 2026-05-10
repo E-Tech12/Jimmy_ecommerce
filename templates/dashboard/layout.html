@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - JimmyElectronic{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 py-12 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="flex flex-col lg:flex-row gap-8">
+            
+            <!-- Sidebar Navigation -->
+            <aside class="w-full lg:w-64 shrink-0">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 lg:p-6 sticky top-20 lg:top-24 z-10">
+                    <div class="hidden lg:flex items-center gap-4 mb-8">
+                        <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-jimmy-red text-xl font-bold">
+                            {{ current_user.first_name[0] }}
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900 leading-tight">{{ current_user.first_name }}</h3>
+                            <p class="text-xs text-gray-500">{{ current_user.email }}</p>
+                        </div>
+                    </div>
+                    
+                    <nav class="flex overflow-x-auto lg:flex-col gap-2 lg:gap-0 lg:space-y-2 pb-2 lg:pb-0 no-scrollbar">
+                        <a href="{{ url_for('dashboard_auth.dashboard') }}" class="whitespace-nowrap shrink-0 flex items-center gap-2 lg:gap-3 px-4 py-2.5 lg:py-3 rounded-xl text-sm lg:text-base {% if request.endpoint == 'dashboard_auth.dashboard' %}bg-jimmy-red text-white{% else %}text-gray-600 hover:bg-gray-50 hover:text-jimmy-red{% endif %} transition">
+                            <i class="fa-solid fa-chart-pie w-5"></i> Overview
+                        </a>
+                        <a href="{{ url_for('dashboard_auth.orders') }}" class="whitespace-nowrap shrink-0 flex items-center gap-2 lg:gap-3 px-4 py-2.5 lg:py-3 rounded-xl text-sm lg:text-base {% if 'orders' in request.endpoint %}bg-jimmy-red text-white{% else %}text-gray-600 hover:bg-gray-50 hover:text-jimmy-red{% endif %} transition">
+                            <i class="fa-solid fa-box w-4 lg:w-5"></i> My Orders
+                        </a>
+                        <a href="{{ url_for('dashboard_auth.favourites') }}" class="whitespace-nowrap shrink-0 flex items-center gap-2 lg:gap-3 px-4 py-2.5 lg:py-3 rounded-xl text-sm lg:text-base {% if 'favourites' in request.endpoint %}bg-jimmy-red text-white{% else %}text-gray-600 hover:bg-gray-50 hover:text-jimmy-red{% endif %} transition">
+                            <i class="fa-solid fa-heart w-4 lg:w-5"></i> Favourites
+                        </a>
+                        <a href="{{ url_for('dashboard_auth.addresses') }}" class="whitespace-nowrap shrink-0 flex items-center gap-2 lg:gap-3 px-4 py-2.5 lg:py-3 rounded-xl text-sm lg:text-base {% if 'addresses' in request.endpoint %}bg-jimmy-red text-white{% else %}text-gray-600 hover:bg-gray-50 hover:text-jimmy-red{% endif %} transition">
+                            <i class="fa-solid fa-map-location-dot w-4 lg:w-5"></i> Addresses
+                        </a>
+                        <a href="{{ url_for('dashboard_auth.notifications') }}" class="whitespace-nowrap shrink-0 flex items-center justify-between px-4 py-2.5 lg:py-3 rounded-xl text-sm lg:text-base {% if 'notifications' in request.endpoint %}bg-jimmy-red text-white{% else %}text-gray-600 hover:bg-gray-50 hover:text-jimmy-red{% endif %} transition">
+                            <div class="flex items-center gap-2 lg:gap-3">
+                                <i class="fa-solid fa-bell w-4 lg:w-5"></i> Notifications
+                            </div>
+                        </a>
+                        
+                        <div class="hidden lg:block">
+                            <hr class="my-4 border-gray-100">
+                        </div>
+                        
+                        <a href="{{ url_for('auth.logout') }}" class="whitespace-nowrap shrink-0 flex items-center gap-2 lg:gap-3 px-4 py-2.5 lg:py-3 rounded-xl text-sm lg:text-base text-red-600 hover:bg-red-50 transition">
+                            <i class="fa-solid fa-arrow-right-from-bracket w-4 lg:w-5"></i> Logout
+                        </a>
+                    </nav>
+                </div>
+            </aside>
+            
+            <!-- Main Content Area -->
+            <div class="flex-1">
+                {% block dashboard_content %}{% endblock %}
+            </div>
+            
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

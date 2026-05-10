@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Complete Payment - JimmyElectronic{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 py-12 min-h-screen flex items-center justify-center">
+    <div class="max-w-md w-full bg-white rounded-3xl shadow-lg border border-gray-100 p-8 text-center">
+        
+        <div class="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i class="fa-solid fa-spinner fa-spin text-3xl text-orange-500"></i>
+        </div>
+        
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">Connecting to Secure Gateway...</h1>
+        <p class="text-gray-500 mb-8">Please wait while we redirect you to Flutterwave to complete your payment of <strong class="text-gray-900">₦{{ "{:,.2f}".format(order.total_amount) }}</strong>.</p>
+        
+        <button type="button" id="start-payment-button" class="hidden w-full bg-orange-500 text-white py-3 rounded-xl font-bold hover:bg-orange-600 transition shadow-sm" onclick="makePayment()">
+            Pay Now
+        </button>
+
+    </div>
+</div>
+
+<script src="https://checkout.flutterwave.com/v3.js"></script>
+<script>
+    function makePayment() {
+        FlutterwaveCheckout({
+            public_key: "{{ flw_public_key }}",
+            tx_ref: "{{ order.payment_reference }}",
+            amount: {{ order.total_amount }},
+            currency: "NGN",
+            payment_options: "card, mobilemoneyghana, ussd",
+            redirect_url: "{{ url_for('checkout_auth.verify_payment', _external=True) }}",
+            customer: {
+                email: "{{ current_user.email }}",
+                phone_number: "{{ current_user.phone_number }}",
+                name: "{{ current_user.first_name }} {{ current_user.last_name }}",
+            },
+            customizations: {
+                title: "JimmyElectronic",
+                description: "Payment for Order #{{ order.id }}",
+                logo: "https://your-logo-url.com/logo.png",
+            },
+        });
+    }
+
+    // Auto-start payment on load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Show button in case popup fails
+        setTimeout(() => {
+            document.getElementById('start-payment-button').classList.remove('hidden');
+        }, 1000);
+        
+        makePayment();
+    });
+</script>
+{% endblock %}

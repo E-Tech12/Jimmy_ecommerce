@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Login | JimmyElectronic{% endblock %}
+
+{% block content %}
+<div class="min-h-[calc(100vh-280px)] flex items-center justify-center py-16 px-4">
+    <div class="bg-white rounded-3xl p-6 sm:p-8 md:p-12 max-w-md w-full shadow-lg border border-gray-100">
+        <h2 class="text-3xl md:text-4xl font-bold mb-2 text-gray-900">Welcome back</h2>
+        <p class="text-gray-500 mb-8 text-sm md:text-base">Login to your JimmyElectronic account</p>
+
+        <form method="POST" action="{{ url_for('auth.login') }}">
+            <div class="mb-6">
+                <label class="block mb-2 font-medium text-sm text-gray-700">
+                    <i class="fa-regular fa-envelope text-jimmy-red mr-2"></i> Email address
+                </label>
+                <input type="email" name="email" placeholder="you@example.com" required autofocus
+                       class="w-full px-5 py-3 border-2 border-gray-200 rounded-full text-sm focus:border-jimmy-red focus:outline-none transition">
+            </div>
+
+            <div class="mb-6">
+                <label class="block mb-2 font-medium text-sm text-gray-700">
+                    <i class="fa-regular fa-lock text-jimmy-red mr-2"></i> Password
+                </label>
+                <input type="password" name="password" placeholder="Enter your password" required
+                       class="w-full px-5 py-3 border-2 border-gray-200 rounded-full text-sm focus:border-jimmy-red focus:outline-none transition">
+            </div>
+
+            <div class="flex justify-between items-center mb-7 text-sm flex-wrap gap-3">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" name="remember" class="w-4 h-4 accent-jimmy-red"> 
+                    <span class="text-gray-600">Remember me</span>
+                </label>
+                <a href="{{ url_for('auth.forgot_password') }}" class="text-jimmy-red font-medium hover:underline">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="w-full bg-jimmy-red text-white py-3 rounded-full font-semibold text-base hover:bg-red-800 transition transform hover:-translate-y-0.5 shadow-md hover:shadow-lg mb-6 flex items-center justify-center gap-2">
+                <i class="fa-regular fa-paper-plane"></i> Login
+            </button>
+
+            <div class="text-center text-sm text-gray-600">
+                Don't have an account?
+                <a href="{{ url_for('auth.register') }}" class="text-jimmy-red font-semibold hover:underline ml-1">Sign up now</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

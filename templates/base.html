@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>{% block title %}JimmyElectronic{% endblock %}</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom config to match brand color -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'jimmy-red': '#c8102e',
+                        'jimmy-dark': '#0f1117',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+
+    <style>
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        /* Custom flash message animations */
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+        
+        .flash-slide-down {
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        .flash-fade-out {
+            animation: fadeOut 0.4s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+<!-- ================= NAVBAR ================= -->
+<nav class="bg-white border-b-2 border-jimmy-red sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16 md:h-20">
+            
+            <!-- Logo -->
+            <a href="/" class="flex items-center gap-2 shrink-0">
+                <i class="fa-solid fa-microchip text-jimmy-red text-xl md:text-2xl"></i>
+                <span class="font-bold text-xl md:text-2xl">
+                    Jimmy<span class="text-jimmy-red">Electronic</span>
+                </span>
+            </a>
+
+            <!-- DESKTOP NAV - hidden on mobile -->
+            <div class="hidden md:flex items-center gap-3 lg:gap-4">
+                <a href="{{ url_for('shop_auth.shop') }}" class="text-sm font-medium hover:text-jimmy-red transition px-2 py-1">
+                    Shop Products
+                </a>
+                
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('checkout_auth.cart') }}" class="flex items-center gap-2 text-sm font-medium hover:text-jimmy-red transition px-2 py-1 relative">
+                        <i class="fa-solid fa-cart-shopping text-lg"></i> Cart
+                        {% if current_user.cart_items %}
+                        <span class="absolute -top-1 -right-1 bg-jimmy-red text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                            {{ current_user.cart_items|length }}
+                        </span>
+                        {% endif %}
+                    </a>
+                    <span class="bg-red-50 px-4 py-2 rounded-full text-sm font-medium text-jimmy-red flex items-center gap-2">
+                        <i class="fa-regular fa-user"></i> Hi, {{ current_user.first_name }}
+                    </span>
+                    <a href="{{ url_for('dashboard_auth.dashboard') }}" class="bg-jimmy-red text-white px-5 py-2 rounded-full text-sm font-semibold hover:bg-red-800 transition flex items-center gap-2">
+                        <i class="fa-regular fa-chart-bar"></i> Dashboard
+                    </a>
+                    <a href="{{ url_for('auth.logout') }}" class="bg-gray-900 text-white px-5 py-2 rounded-full text-sm font-semibold hover:bg-jimmy-red transition flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="border-2 border-jimmy-red text-jimmy-red px-5 py-2 rounded-full text-sm font-semibold hover:bg-jimmy-red hover:text-white transition flex items-center gap-2">
+                        <i class="fa-regular fa-user"></i> Login
+                    </a>
+                    <a href="{{ url_for('auth.register') }}" class="bg-jimmy-red text-white px-5 py-2 rounded-full text-sm font-semibold hover:bg-red-800 transition flex items-center gap-2">
+                        <i class="fa-solid fa-user-plus"></i> Sign Up
+                    </a>
+                {% endif %}
+            </div>
+
+            <!-- Mobile menu button -->
+            <button id="mobileMenuBtn" class="md:hidden text-2xl text-gray-700 focus:outline-none">
+                <i id="menuIcon" class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- MOBILE DROPDOWN MENU -->
+    <div id="mobileDropdown" class="hidden md:hidden bg-white border-t border-gray-100 shadow-lg">
+        <div class="px-4 py-3 space-y-3">
+            <a href="{{ url_for('shop_auth.shop') }}" class="block py-3 text-base font-medium hover:text-jimmy-red border-b border-gray-100">
+                Shop Products
+            </a>
+            
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('checkout_auth.cart') }}" class="block py-3 text-base font-medium hover:text-jimmy-red border-b border-gray-100 flex items-center justify-between">
+                    <span><i class="fa-solid fa-cart-shopping mr-2"></i> Cart</span>
+                    {% if current_user.cart_items %}
+                    <span class="bg-jimmy-red text-white text-xs px-2 py-1 rounded-full font-bold">
+                        {{ current_user.cart_items|length }}
+                    </span>
+                    {% endif %}
+                </a>
+                <div class="py-3 text-base font-medium text-jimmy-red border-b border-gray-100">
+                    <i class="fa-regular fa-user mr-2"></i> Hi, {{ current_user.first_name }}
+                </div>
+                <a href="{{ url_for('dashboard_auth.dashboard') }}" class="block py-3 text-base font-medium hover:text-jimmy-red border-b border-gray-100">
+                    <i class="fa-regular fa-chart-bar mr-2"></i> Dashboard
+                </a>
+                <a href="{{ url_for('auth.logout') }}" class="block py-3 text-base font-medium bg-gray-900 text-white text-center rounded-xl hover:bg-jimmy-red transition">
+                    <i class="fa-solid fa-arrow-right-from-bracket mr-2"></i> Logout
+                </a>
+            {% else %}
+                <a href="{{ url_for('auth.login') }}" class="block py-3 text-center border-2 border-jimmy-red text-jimmy-red rounded-xl font-semibold hover:bg-jimmy-red hover:text-white transition">
+                    <i class="fa-regular fa-user mr-2"></i> Login
+                </a>
+                <a href="{{ url_for('auth.register') }}" class="block py-3 text-center bg-jimmy-red text-white rounded-xl font-semibold hover:bg-red-800 transition">
+                    <i class="fa-solid fa-user-plus mr-2"></i> Sign Up
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<!-- ================= FLASH MESSAGES ================= -->
+<div class="fixed top-20 left-1/2 transform -translate-x-1/2 z-[1001] w-auto max-w-[90%] pointer-events-none" id="flashContainer">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-message-item flash-slide-down pointer-events-auto mb-3 rounded-xl shadow-lg flex items-center gap-3 px-5 py-3 min-w-[280px] 
+                    {% if category == 'success' %}bg-green-500 text-white border-l-4 border-green-700
+                    {% elif category == 'error' or category == 'danger' %}bg-red-500 text-white border-l-4 border-red-700
+                    {% elif category == 'warning' %}bg-amber-500 text-white border-l-4 border-amber-700
+                    {% else %}bg-blue-500 text-white border-l-4 border-blue-700{% endif %}">
+                    {% if category == 'success' %}
+                        <i class="fa-solid fa-circle-check text-lg"></i>
+                    {% elif category == 'error' or category == 'danger' %}
+                        <i class="fa-solid fa-circle-exclamation text-lg"></i>
+                    {% elif category == 'warning' %}
+                        <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+                    {% else %}
+                        <i class="fa-solid fa-circle-info text-lg"></i>
+                    {% endif %}
+                    <span class="flex-1 text-sm font-medium">{{ message }}</span>
+                    <span class="flash-close cursor-pointer bg-white/20 w-6 h-6 rounded-full flex items-center justify-center text-sm hover:bg-white/40 transition" onclick="this.parentElement.remove()">✕</span>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</div>
+
+<!-- ================= MAIN CONTENT ================= -->
+<main class="min-h-[calc(100vh-280px)] py-10 px-4 md:px-6 lg:px-8">
+    {% block content %}{% endblock %}
+</main>
+
+<!-- ================= FOOTER ================= -->
+<footer class="bg-jimmy-dark text-white py-12 px-4 mt-10">
+    <div class="max-w-6xl mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 text-center md:text-left">
+            
+            <!-- Column 1 -->
+            <div>
+                <div class="text-2xl font-bold mb-3">
+                    Jimmy<span class="text-jimmy-red">Electronic</span>
+                </div>
+                <p class="text-gray-400 text-sm leading-relaxed mb-4">
+                    Premium electronics with flexible installment payment plans. Buy now, pay over time with zero stress.
+                </p>
+                <div class="flex gap-3 justify-center md:justify-start">
+                    <a href="#" class="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center hover:bg-jimmy-red transition"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#" class="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center hover:bg-jimmy-red transition"><i class="fa-brands fa-twitter"></i></a>
+                    <a href="#" class="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center hover:bg-jimmy-red transition"><i class="fa-brands fa-instagram"></i></a>
+                </div>
+            </div>
+            
+            <!-- Column 2 -->
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
+                <div class="flex flex-col gap-2">
+                    <a href="#" class="text-gray-400 hover:text-jimmy-red transition text-sm">Shop Products</a>
+                    <a href="#" class="text-gray-400 hover:text-jimmy-red transition text-sm">About Us</a>
+                    <a href="#" class="text-gray-400 hover:text-jimmy-red transition text-sm">How Installments Work</a>
+                </div>
+            </div>
+            
+            <!-- Column 3 -->
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Customer Service</h3>
+                <div class="flex flex-col gap-2">
+                    <a href="#" class="text-gray-400 hover:text-jimmy-red transition text-sm">Contact Us</a>
+                    <a href="#" class="text-gray-400 hover:text-jimmy-red transition text-sm">Terms & Conditions</a>
+                    <a href="#" class="text-gray-400 hover:text-jimmy-red transition text-sm">Privacy Policy</a>
+                </div>
+            </div>
+            
+            <!-- Column 4 -->
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Contact Us</h3>
+                <div class="space-y-3">
+                    <div class="flex gap-3 text-gray-400 text-sm items-center justify-center md:justify-start">
+                        <i class="fa-solid fa-location-dot text-jimmy-red"></i>
+                        <span>123 Tech Avenue, Lagos, Nigeria</span>
+                    </div>
+                    <div class="flex gap-3 text-gray-400 text-sm items-center justify-center md:justify-start">
+                        <i class="fa-solid fa-phone text-jimmy-red"></i>
+                        <span>+234 800 JIMMYELEC</span>
+                    </div>
+                    <div class="flex gap-3 text-gray-400 text-sm items-center justify-center md:justify-start">
+                        <i class="fa-solid fa-envelope text-jimmy-red"></i>
+                        <span>support@jimmylelectronic.com</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center text-gray-500 text-xs pt-8 mt-8 border-t border-gray-800">
+            © 2026 JimmyElectronic. All rights reserved.
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Mobile dropdown toggle
+    const menuBtn = document.getElementById('mobileMenuBtn');
+    const mobileDropdown = document.getElementById('mobileDropdown');
+    const menuIcon = document.getElementById('menuIcon');
+    
+    if (menuBtn && mobileDropdown) {
+        menuBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            mobileDropdown.classList.toggle('hidden');
+            // Change icon between bars and times
+            if (mobileDropdown.classList.contains('hidden')) {
+                menuIcon.className = 'fa-solid fa-bars';
+            } else {
+                menuIcon.className = 'fa-solid fa-times';
+            }
+        });
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        if (mobileDropdown && !mobileDropdown.classList.contains('hidden')) {
+            if (!event.target.closest('.navbar') && !event.target.closest('#mobileMenuBtn')) {
+                mobileDropdown.classList.add('hidden');
+                menuIcon.className = 'fa-solid fa-bars';
+            }
+        }
+    });
+
+    // Auto dismiss flash messages after 4 seconds
+    setTimeout(function() {
+        const flashMessages = document.querySelectorAll('.flash-message-item');
+        flashMessages.forEach(function(msg) {
+            msg.classList.add('flash-fade-out');
+            setTimeout(function() {
+                if (msg.parentElement) msg.remove();
+            }, 400);
+        });
+    }, 4000);
+</script>
+
+</body>
+</html>

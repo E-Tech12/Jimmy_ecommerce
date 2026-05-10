@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Us | JimmyElectronic{% endblock %}
+
+{% block content %}
+<div class="min-h-[calc(100vh-280px)] flex items-center justify-center py-16 px-4">
+    <div class="bg-white rounded-3xl p-6 sm:p-8 md:p-12 max-w-xl w-full shadow-lg border border-gray-100">
+        <h2 class="text-3xl md:text-4xl font-bold mb-2 text-gray-900">Contact Us</h2>
+        <p class="text-gray-500 mb-8 text-sm md:text-base">Have a question or feedback? Send us a message.</p>
+
+        <form method="POST" action="{{ url_for('contact_auth.contact') }}">
+            <div class="mb-4">
+                <label class="block mb-2 font-medium text-sm text-gray-700">Name</label>
+                <input type="text" name="name" placeholder="Your Full Name" required
+                       class="w-full px-5 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-jimmy-red focus:outline-none transition">
+            </div>
+
+            <div class="mb-4">
+                <label class="block mb-2 font-medium text-sm text-gray-700">Email Address</label>
+                <input type="email" name="email" placeholder="you@example.com" required
+                       class="w-full px-5 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-jimmy-red focus:outline-none transition">
+            </div>
+
+            <div class="mb-8">
+                <label class="block mb-2 font-medium text-sm text-gray-700">Message</label>
+                <textarea name="message" rows="5" placeholder="How can we help you?" required
+                          class="w-full px-5 py-3 border-2 border-gray-200 rounded-xl text-sm focus:border-jimmy-red focus:outline-none transition resize-none"></textarea>
+            </div>
+
+            <button type="submit" class="w-full bg-jimmy-red text-white py-3 rounded-full font-semibold text-base hover:bg-red-800 transition transform hover:-translate-y-0.5 shadow-md hover:shadow-lg">
+                Send Message
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

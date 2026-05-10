@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}Home | JimmyElectronic{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="relative bg-jimmy-dark rounded-3xl overflow-hidden shadow-2xl mb-16">
+    <!-- Background Pattern/Gradient -->
+    <div class="absolute inset-0 bg-gradient-to-r from-jimmy-dark to-gray-800 opacity-90"></div>
+    <div class="absolute -top-24 -right-24 w-96 h-96 bg-jimmy-red rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+    
+    <div class="relative z-10 px-6 py-16 md:py-24 lg:px-16 lg:py-32 flex flex-col md:flex-row items-center">
+        <div class="w-full md:w-1/2 text-center md:text-left mb-10 md:mb-0">
+            <span class="inline-block py-1 px-3 rounded-full bg-red-500/20 text-jimmy-red font-semibold text-sm mb-4 border border-red-500/30">
+                New Arrival 2026
+            </span>
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+                Upgrade Your Tech <br/>
+                <span class="text-jimmy-red">Without The Stress.</span>
+            </h1>
+            <p class="text-gray-300 text-lg md:text-xl mb-8 max-w-lg mx-auto md:mx-0">
+                Premium laptops, phones, and accessories with flexible installment plans. Buy now, pay later.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                <a href="#" class="bg-jimmy-red hover:bg-red-700 text-white font-semibold py-3 px-8 rounded-full transition transform hover:-translate-y-1 shadow-lg text-center">
+                    Shop Now <i class="fa-solid fa-arrow-right ml-2"></i>
+                </a>
+                <a href="#" class="bg-white/10 hover:bg-white/20 text-white font-semibold py-3 px-8 rounded-full transition backdrop-blur-sm border border-white/20 text-center">
+                    View Installment Plans
+                </a>
+            </div>
+        </div>
+        <div class="w-full md:w-1/2 flex justify-center">
+            <!-- Placeholder for Hero Image (e.g., a floating laptop or phone) -->
+            <div class="relative w-72 h-72 md:w-96 md:h-96 bg-gradient-to-tr from-gray-800 to-gray-700 rounded-full flex items-center justify-center shadow-2xl border-4 border-gray-800 animate-pulse">
+                <i class="fa-solid fa-laptop text-8xl text-gray-500"></i>
+                <div class="absolute -bottom-4 -right-4 w-24 h-24 bg-jimmy-red rounded-full flex items-center justify-center shadow-lg border-4 border-jimmy-dark text-white font-bold text-lg">
+                    -20%
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Categories Section -->
+<div class="mb-16">
+    <div class="flex justify-between items-end mb-8">
+        <div>
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-900">Shop by Category</h2>
+            <p class="text-gray-500 mt-2">Find exactly what you're looking for</p>
+        </div>
+        <a href="#" class="hidden md:inline-flex text-jimmy-red font-semibold hover:underline items-center">
+            View All <i class="fa-solid fa-chevron-right text-xs ml-1"></i>
+        </a>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+        <!-- Category 1 -->
+        <a href="#" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-jimmy-red/30 transition group text-center">
+            <div class="w-16 h-16 mx-auto bg-gray-50 rounded-full flex items-center justify-center mb-4 group-hover:bg-red-50 transition">
+                <i class="fa-solid fa-laptop text-2xl text-gray-700 group-hover:text-jimmy-red transition"></i>
+            </div>
+            <h3 class="font-semibold text-gray-900">Laptops</h3>
+        </a>
+        <!-- Category 2 -->
+        <a href="#" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-jimmy-red/30 transition group text-center">
+            <div class="w-16 h-16 mx-auto bg-gray-50 rounded-full flex items-center justify-center mb-4 group-hover:bg-red-50 transition">
+                <i class="fa-solid fa-mobile-screen text-2xl text-gray-700 group-hover:text-jimmy-red transition"></i>
+            </div>
+            <h3 class="font-semibold text-gray-900">Smartphones</h3>
+        </a>
+        <!-- Category 3 -->
+        <a href="#" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-jimmy-red/30 transition group text-center">
+            <div class="w-16 h-16 mx-auto bg-gray-50 rounded-full flex items-center justify-center mb-4 group-hover:bg-red-50 transition">
+                <i class="fa-solid fa-headphones text-2xl text-gray-700 group-hover:text-jimmy-red transition"></i>
+            </div>
+            <h3 class="font-semibold text-gray-900">Audio</h3>
+        </a>
+        <!-- Category 4 -->
+        <a href="#" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-jimmy-red/30 transition group text-center">
+            <div class="w-16 h-16 mx-auto bg-gray-50 rounded-full flex items-center justify-center mb-4 group-hover:bg-red-50 transition">
+                <i class="fa-solid fa-gamepad text-2xl text-gray-700 group-hover:text-jimmy-red transition"></i>
+            </div>
+            <h3 class="font-semibold text-gray-900">Gaming</h3>
+        </a>
+    </div>
+</div>
+
+<!-- Featured Products Placeholder -->
+<div class="mb-16">
+    <div class="flex justify-between items-end mb-8">
+        <div>
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-900">Trending Now</h2>
+            <p class="text-gray-500 mt-2">Our most popular electronics this week</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Product Card 1 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition group">
+            <div class="h-48 bg-gray-100 flex items-center justify-center relative">
+                <div class="absolute top-3 left-3 bg-jimmy-red text-white text-xs font-bold px-2 py-1 rounded">HOT</div>
+                <i class="fa-solid fa-image text-4xl text-gray-300 group-hover:scale-110 transition duration-300"></i>
+            </div>
+            <div class="p-5">
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="font-semibold text-gray-900 text-lg leading-tight">MacBook Pro 16" M3 Max</h3>
+                </div>
+                <div class="flex items-center gap-1 text-yellow-400 text-sm mb-3">
+                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i>
+                    <span class="text-gray-400 ml-1">(24)</span>
+                </div>
+                <div class="mb-4">
+                    <span class="font-bold text-xl text-gray-900">₦2,500,000</span>
+                    <p class="text-sm text-gray-500 mt-1">or <span class="text-jimmy-red font-semibold">₦250k/mo</span></p>
+                </div>
+                <button class="w-full bg-gray-900 text-white py-2.5 rounded-xl font-medium hover:bg-jimmy-red transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-cart-plus"></i> Add to Cart
+                </button>
+            </div>
+        </div>
+
+        <!-- Product Card 2 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition group">
+            <div class="h-48 bg-gray-100 flex items-center justify-center relative">
+                <i class="fa-solid fa-image text-4xl text-gray-300 group-hover:scale-110 transition duration-300"></i>
+            </div>
+            <div class="p-5">
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="font-semibold text-gray-900 text-lg leading-tight">iPhone 15 Pro Max 256GB</h3>
+                </div>
+                <div class="flex items-center gap-1 text-yellow-400 text-sm mb-3">
+                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                    <span class="text-gray-400 ml-1">(128)</span>
+                </div>
+                <div class="mb-4">
+                    <span class="font-bold text-xl text-gray-900">₦1,350,000</span>
+                    <p class="text-sm text-gray-500 mt-1">or <span class="text-jimmy-red font-semibold">₦135k/mo</span></p>
+                </div>
+                <button class="w-full bg-gray-900 text-white py-2.5 rounded-xl font-medium hover:bg-jimmy-red transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-cart-plus"></i> Add to Cart
+                </button>
+            </div>
+        </div>
+
+        <!-- Product Card 3 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition group">
+            <div class="h-48 bg-gray-100 flex items-center justify-center relative">
+                <i class="fa-solid fa-image text-4xl text-gray-300 group-hover:scale-110 transition duration-300"></i>
+            </div>
+            <div class="p-5">
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="font-semibold text-gray-900 text-lg leading-tight">Sony WH-1000XM5</h3>
+                </div>
+                <div class="flex items-center gap-1 text-yellow-400 text-sm mb-3">
+                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i>
+                    <span class="text-gray-400 ml-1">(45)</span>
+                </div>
+                <div class="mb-4">
+                    <span class="font-bold text-xl text-gray-900">₦350,000</span>
+                    <p class="text-sm text-gray-500 mt-1">or <span class="text-jimmy-red font-semibold">₦35k/mo</span></p>
+                </div>
+                <button class="w-full bg-gray-900 text-white py-2.5 rounded-xl font-medium hover:bg-jimmy-red transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-cart-plus"></i> Add to Cart
+                </button>
+            </div>
+        </div>
+
+        <!-- Product Card 4 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition group">
+            <div class="h-48 bg-gray-100 flex items-center justify-center relative">
+                <i class="fa-solid fa-image text-4xl text-gray-300 group-hover:scale-110 transition duration-300"></i>
+            </div>
+            <div class="p-5">
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="font-semibold text-gray-900 text-lg leading-tight">PlayStation 5 Console</h3>
+                </div>
+                <div class="flex items-center gap-1 text-yellow-400 text-sm mb-3">
+                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i>
+                    <span class="text-gray-400 ml-1">(89)</span>
+                </div>
+                <div class="mb-4">
+                    <span class="font-bold text-xl text-gray-900">₦650,000</span>
+                    <p class="text-sm text-gray-500 mt-1">or <span class="text-jimmy-red font-semibold">₦65k/mo</span></p>
+                </div>
+                <button class="w-full bg-gray-900 text-white py-2.5 rounded-xl font-medium hover:bg-jimmy-red transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-cart-plus"></i> Add to Cart
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Why Choose Us -->
+<div class="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-gray-100 text-center">
+    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-10">Why Shop With JimmyElectronic?</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div>
+            <div class="w-16 h-16 mx-auto bg-red-50 rounded-full flex items-center justify-center mb-4 text-jimmy-red">
+                <i class="fa-solid fa-shield-halved text-2xl"></i>
+            </div>
+            <h3 class="font-semibold text-lg mb-2 text-gray-900">Genuine Products</h3>
+            <p class="text-gray-500 text-sm">All our electronics are 100% authentic with manufacturer warranty.</p>
+        </div>
+        <div>
+            <div class="w-16 h-16 mx-auto bg-red-50 rounded-full flex items-center justify-center mb-4 text-jimmy-red">
+                <i class="fa-solid fa-credit-card text-2xl"></i>
+            </div>
+            <h3 class="font-semibold text-lg mb-2 text-gray-900">Flexible Installments</h3>
+            <p class="text-gray-500 text-sm">Pay over 3, 6, or 12 months with minimal interest rates.</p>
+        </div>
+        <div>
+            <div class="w-16 h-16 mx-auto bg-red-50 rounded-full flex items-center justify-center mb-4 text-jimmy-red">
+                <i class="fa-solid fa-truck-fast text-2xl"></i>
+            </div>
+            <h3 class="font-semibold text-lg mb-2 text-gray-900">Fast Delivery</h3>
+            <p class="text-gray-500 text-sm">Get your orders delivered to your doorstep within 24-48 hours.</p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

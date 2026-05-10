@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}Shop - JimmyElectronic{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header & Search -->
+        <div class="flex flex-col md:flex-row justify-between items-end gap-4 mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Our Products</h1>
+                <p class="text-gray-500 mt-2">Discover the latest electronics and gadgets.</p>
+            </div>
+            
+            <form action="{{ url_for('shop_auth.shop') }}" method="GET" class="w-full md:w-96 relative">
+                <!-- Preserve existing filters -->
+                {% if current_category %}<input type="hidden" name="category" value="{{ current_category }}">{% endif %}
+                {% if current_tag %}<input type="hidden" name="tag" value="{{ current_tag }}">{% endif %}
+                
+                <input type="text" name="q" value="{{ search_query }}" placeholder="Search products..." class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-jimmy-red focus:ring-1 focus:ring-jimmy-red focus:outline-none transition shadow-sm">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                <button type="submit" class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-jimmy-red text-white px-3 py-1.5 rounded-lg text-sm hover:bg-red-800 transition">Search</button>
+            </form>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-8">
+            
+            <!-- Sidebar Filters -->
+            <aside class="w-full lg:w-64 shrink-0">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-24">
+                    <!-- Mobile Toggle Button -->
+                    <button type="button" class="w-full flex items-center justify-between lg:hidden font-semibold text-gray-900" onclick="document.getElementById('filter-content').classList.toggle('hidden'); this.querySelector('.fa-chevron-down').classList.toggle('rotate-180')">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-filter text-jimmy-red"></i> Filters</span>
+                        <i class="fa-solid fa-chevron-down transition-transform duration-200"></i>
+                    </button>
+                    
+                    <!-- Desktop Header -->
+                    <h3 class="hidden lg:flex font-semibold text-gray-900 mb-4 items-center gap-2">
+                        <i class="fa-solid fa-filter text-jimmy-red"></i> Filters
+                    </h3>
+                    
+                    <!-- Collapsible Content -->
+                    <div id="filter-content" class="hidden lg:block mt-4 lg:mt-0">
+                        <!-- Categories -->
+                        <div class="mb-6">
+                        <h4 class="text-sm font-medium text-gray-900 uppercase tracking-wider mb-3">Categories</h4>
+                        <ul class="space-y-2">
+                            <li>
+                                <a href="{{ url_for('shop_auth.shop', q=search_query, tag=current_tag) }}" class="flex items-center gap-2 text-sm {% if not current_category %}text-jimmy-red font-semibold{% else %}text-gray-600 hover:text-jimmy-red{% endif %} transition">
+                                    All Categories
+                                </a>
+                            </li>
+                            {% for cat in categories %}
+                            <li>
+                                <a href="{{ url_for('shop_auth.shop', category=cat.id, q=search_query, tag=current_tag) }}" class="flex items-center gap-2 text-sm {% if current_category == cat.id %}text-jimmy-red font-semibold{% else %}text-gray-600 hover:text-jimmy-red{% endif %} transition">
+                                    {{ cat.name }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    
+                    <!-- Special Tags -->
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-900 uppercase tracking-wider mb-3">Collections</h4>
+                        <ul class="space-y-2">
+                            <li>
+                                <a href="{{ url_for('shop_auth.shop', category=current_category, q=search_query) }}" class="flex items-center gap-2 text-sm {% if not current_tag %}text-jimmy-red font-semibold{% else %}text-gray-600 hover:text-jimmy-red{% endif %} transition">
+                                    All Products
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ url_for('shop_auth.shop', tag='new', category=current_category, q=search_query) }}" class="flex items-center gap-2 text-sm {% if current_tag == 'new' %}text-jimmy-red font-semibold{% else %}text-gray-600 hover:text-jimmy-red{% endif %} transition">
+                                    <i class="fa-solid fa-sparkles text-amber-500 w-4"></i> New Arrivals
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ url_for('shop_auth.shop', tag='featured', category=current_category, q=search_query) }}" class="flex items-center gap-2 text-sm {% if current_tag == 'featured' %}text-jimmy-red font-semibold{% else %}text-gray-600 hover:text-jimmy-red{% endif %} transition">
+                                    <i class="fa-solid fa-star text-jimmy-red w-4"></i> Featured
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ url_for('shop_auth.shop', tag='promoted', category=current_category, q=search_query) }}" class="flex items-center gap-2 text-sm {% if current_tag == 'promoted' %}text-jimmy-red font-semibold{% else %}text-gray-600 hover:text-jimmy-red{% endif %} transition">
+                                    <i class="fa-solid fa-fire text-orange-500 w-4"></i> Trending Promos
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    {% if current_category or current_tag or search_query %}
+                    <div class="mt-6 pt-4 border-t border-gray-100">
+                        <a href="{{ url_for('shop_auth.shop') }}" class="text-sm text-red-600 hover:underline flex items-center gap-1">
+                            <i class="fa-solid fa-times"></i> Clear All Filters
+                        </a>
+                    </div>
+                    {% endif %}
+                    </div> <!-- End Collapsible Content -->
+                </div>
+            </aside>
+
+            <!-- Product Grid -->
+            <div class="flex-1">
+                {% if products %}
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for product in products %}
+                    <div class="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-shadow duration-300 border border-gray-100 overflow-hidden flex flex-col relative group">
+                        
+                        <!-- Badges -->
+                        <div class="absolute top-3 left-3 flex flex-col gap-1 z-10">
+                            {% if product.is_new_arrival %}
+                            <span class="bg-jimmy-red text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wide shadow-sm">New</span>
+                            {% endif %}
+                            {% if product.is_promoted %}
+                            <span class="bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wide shadow-sm">Promo</span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Favourite Button -->
+                        <div class="absolute top-3 right-3 z-20">
+                            <form action="{{ url_for('shop_auth.toggle_favourite', product_id=product.id) }}" method="POST">
+                                <button type="submit" class="w-8 h-8 rounded-full bg-white/90 text-gray-400 hover:text-jimmy-red shadow-sm flex items-center justify-center transition backdrop-blur-sm" title="Toggle Favourite">
+                                    <i class="fa-solid fa-heart"></i>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Image -->
+                        <a href="{{ url_for('shop_auth.product_detail', product_id=product.id) }}" class="aspect-w-1 aspect-h-1 w-full h-48 bg-gray-100 relative overflow-hidden group-hover:opacity-90 transition-opacity block">
+                            {% if product.images %}
+                                <div class="w-full h-full relative product-carousel" data-interval="5000">
+                                    {% for img in product.images %}
+                                        <img src="{{ url_for('static', filename='uploads/products/' + img.filename) }}" alt="{{ product.name }}" class="absolute top-0 left-0 w-full h-full object-cover object-center transition-opacity duration-1000 {% if loop.index0 == 0 %}opacity-100 z-10{% else %}opacity-0 z-0{% endif %}">
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="w-full h-full flex items-center justify-center text-gray-400">
+                                    <i class="fa-solid fa-image text-4xl"></i>
+                                </div>
+                            {% endif %}
+                        </a>
+
+                        <!-- Content -->
+                        <div class="p-5 flex-1 flex flex-col">
+                            <div class="text-xs text-gray-500 mb-1 flex justify-between items-center">
+                                <span>{{ product.category.name if product.category else 'Uncategorized' }}</span>
+                                {% if product.is_featured %}
+                                    <i class="fa-solid fa-star text-amber-400 text-[10px]"></i>
+                                {% endif %}
+                            </div>
+                            
+                            <h3 class="text-lg font-semibold text-gray-900 leading-tight mb-2 line-clamp-2">
+                                <a href="{{ url_for('shop_auth.product_detail', product_id=product.id) }}" class="hover:text-jimmy-red transition">{{ product.name }}</a>
+                            </h3>
+                            
+                            <!-- Low Stock Alert -->
+                            {% if product.stock > 0 and product.stock < 5 %}
+                            <div class="mt-auto mb-2">
+                                <span class="inline-flex items-center gap-1 bg-red-50 text-red-600 text-xs font-semibold px-2 py-1 rounded-md border border-red-100">
+                                    <i class="fa-solid fa-fire text-[10px]"></i> Low Stock! Only {{ product.stock }} left
+                                </span>
+                            </div>
+                            {% elif product.stock == 0 %}
+                            <div class="mt-auto mb-2">
+                                <span class="inline-flex items-center gap-1 bg-gray-100 text-gray-600 text-xs font-semibold px-2 py-1 rounded-md border border-gray-200">
+                                    <i class="fa-solid fa-ban text-[10px]"></i> Out of Stock
+                                </span>
+                            </div>
+                            {% endif %}
+
+                            <div class="{% if product.stock >= 5 %}mt-auto{% endif %} flex items-center justify-between pt-4 border-t border-gray-100">
+                                <div>
+                                    <span class="text-xl font-bold text-gray-900">₦{{ "{:,.2f}".format(product.price) }}</span>
+                                    {% if product.is_installmental_payment %}
+                                    <p class="text-[10px] text-gray-500 mt-0.5">Installment available</p>
+                                    {% endif %}
+                                </div>
+                                <form action="{{ url_for('shop_auth.add_to_cart', product_id=product.id) }}" method="POST" class="flex items-center gap-2">
+                                    <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" class="w-12 h-10 border border-gray-200 rounded-lg text-center text-sm focus:outline-none focus:border-jimmy-red" {% if product.stock == 0 %}disabled{% endif %}>
+                                    <button type="submit" class="w-10 h-10 rounded-full bg-jimmy-red text-white flex items-center justify-center hover:bg-red-800 transition shadow-sm {% if product.stock == 0 %}opacity-50 cursor-not-allowed{% endif %}" {% if product.stock == 0 %}disabled{% endif %} title="Add to Cart">
+                                        <i class="fa-solid fa-cart-plus"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
+                    <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
+                        <i class="fa-solid fa-magnifying-glass text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-medium text-gray-900 mb-2">No products found</h3>
+                    <p class="text-gray-500 mb-6">We couldn't find any products matching your current filters.</p>
+                    <a href="{{ url_for('shop_auth.shop') }}" class="text-jimmy-red font-medium hover:underline">Clear all filters</a>
+                </div>
+                {% endif %}
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const carousels = document.querySelectorAll('.product-carousel');
+    carousels.forEach(carousel => {
+        const images = carousel.querySelectorAll('img');
+        if (images.length <= 1) return; // No animation needed for single image
+        
+        let currentIndex = 0;
+        setInterval(() => {
+            images[currentIndex].classList.remove('opacity-100', 'z-10');
+            images[currentIndex].classList.add('opacity-0', 'z-0');
+            
+            currentIndex = (currentIndex + 1) % images.length;
+            
+            images[currentIndex].classList.remove('opacity-0', 'z-0');
+            images[currentIndex].classList.add('opacity-100', 'z-10');
+        }, parseInt(carousel.dataset.interval) || 5000);
+    });
+});
+</script>
+{% endblock %}

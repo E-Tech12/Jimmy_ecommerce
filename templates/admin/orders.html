@@ -1,0 +1,83 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Orders | Admin Panel{% endblock %}
+{% block header_title %}Orders Management{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h2 class="text-xl font-bold text-gray-800">All Orders</h2>
+    <div class="flex gap-2">
+        <button class="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition">
+            <i class="fa-solid fa-filter mr-1"></i> Filter
+        </button>
+        <button class="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition">
+            <i class="fa-solid fa-download mr-1"></i> Export
+        </button>
+    </div>
+</div>
+
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    {% if orders %}
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-gray-600">
+            <thead class="bg-gray-50 text-gray-700">
+                <tr>
+                    <th class="px-6 py-4 font-semibold">Order ID</th>
+                    <th class="px-6 py-4 font-semibold">Customer</th>
+                    <th class="px-6 py-4 font-semibold">Date</th>
+                    <th class="px-6 py-4 font-semibold">Total Amount</th>
+                    <th class="px-6 py-4 font-semibold">Status</th>
+                    <th class="px-6 py-4 font-semibold text-right">Action</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for order in orders %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 font-medium text-gray-900">#{{ order.id }}</td>
+                    <td class="px-6 py-4">
+                        <div class="font-medium text-gray-900">{{ order.user.first_name }} {{ order.user.last_name }}</div>
+                        <div class="text-xs text-gray-500">{{ order.user.email }}</div>
+                    </td>
+                    <td class="px-6 py-4 text-gray-500">{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td class="px-6 py-4 font-medium text-gray-900">₦{{ "{:,.2f}".format(order.total_amount) }}</td>
+                    <td class="px-6 py-4">
+                        {% if order.status == 'Pending' %}
+                            <span class="bg-amber-100 text-amber-800 text-xs font-semibold px-2.5 py-1 rounded-full">Pending</span>
+                        {% elif order.status == 'Processing' %}
+                            <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-1 rounded-full">Processing</span>
+                        {% elif order.status == 'Shipped' %}
+                            <span class="bg-purple-100 text-purple-800 text-xs font-semibold px-2.5 py-1 rounded-full">Shipped</span>
+                        {% elif order.status == 'Delivered' %}
+                            <span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-1 rounded-full">Delivered</span>
+                        {% else %}
+                            <span class="bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-1 rounded-full">{{ order.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <form action="{{ url_for('admin_auth.update_order_status', order_id=order.id) }}" method="POST" class="inline-flex items-center gap-2">
+                            <select name="status" class="text-sm border border-gray-200 rounded-lg py-1 px-2 focus:outline-none focus:border-jimmy-red">
+                                <option value="Pending" {% if order.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                <option value="Processing" {% if order.status == 'Processing' %}selected{% endif %}>Processing</option>
+                                <option value="Shipped" {% if order.status == 'Shipped' %}selected{% endif %}>Shipped</option>
+                                <option value="Delivered" {% if order.status == 'Delivered' %}selected{% endif %}>Delivered</option>
+                                <option value="Cancelled" {% if order.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                            </select>
+                            <button type="submit" class="bg-gray-900 text-white p-1.5 rounded-lg hover:bg-jimmy-red transition" title="Update Status">
+                                <i class="fa-solid fa-check text-xs"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="p-12 text-center text-gray-500">
+        <i class="fa-solid fa-cart-flatbed text-5xl mb-4 text-gray-300"></i>
+        <h3 class="text-xl font-medium text-gray-700 mb-2">No orders yet</h3>
+        <p>When customers place orders, they will appear here.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

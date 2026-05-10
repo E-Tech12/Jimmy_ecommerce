@@ -1,0 +1,61 @@
+{% extends "dashboard/layout.html" %}
+
+{% block dashboard_content %}
+<h2 class="text-2xl font-bold text-gray-900 mb-6">Saved Favourites</h2>
+
+{% if favourites %}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for fav in favourites %}
+    <div class="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-shadow duration-300 border border-gray-100 overflow-hidden flex flex-col relative group">
+        
+        <!-- Remove Button -->
+        <div class="absolute top-3 right-3 z-10">
+            <form action="{{ url_for('shop_auth.toggle_favourite', product_id=fav.product.id) }}" method="POST">
+                <button type="submit" class="w-8 h-8 rounded-full bg-white text-gray-400 hover:text-red-500 shadow-sm flex items-center justify-center transition">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </form>
+        </div>
+
+        <!-- Image -->
+        <a href="{{ url_for('shop_auth.product_detail', product_id=fav.product.id) }}" class="aspect-w-1 aspect-h-1 w-full bg-gray-100 relative overflow-hidden block">
+            {% if fav.product.images %}
+                <img src="{{ url_for('static', filename='uploads/products/' + fav.product.images[0].filename) }}" class="w-full h-48 object-cover object-center group-hover:opacity-90 transition">
+            {% else %}
+                <div class="w-full h-48 flex items-center justify-center text-gray-400">
+                    <i class="fa-solid fa-image text-4xl"></i>
+                </div>
+            {% endif %}
+        </a>
+
+        <!-- Content -->
+        <div class="p-5 flex-1 flex flex-col">
+            <h3 class="text-lg font-semibold text-gray-900 leading-tight mb-2 line-clamp-1">
+                <a href="{{ url_for('shop_auth.product_detail', product_id=fav.product.id) }}" class="hover:text-jimmy-red transition">{{ fav.product.name }}</a>
+            </h3>
+            
+            <div class="mt-auto flex items-center justify-between pt-4 border-t border-gray-100">
+                <span class="text-xl font-bold text-gray-900">₦{{ "{:,.2f}".format(fav.product.price) }}</span>
+                
+                <form action="{{ url_for('shop_auth.add_to_cart', product_id=fav.product.id) }}" method="POST">
+                    <button type="submit" class="w-10 h-10 rounded-full bg-jimmy-red text-white flex items-center justify-center hover:bg-red-800 transition shadow-sm {% if fav.product.available_stock == 0 %}opacity-50 cursor-not-allowed{% endif %}" {% if fav.product.available_stock == 0 %}disabled{% endif %} title="Add to Cart">
+                        <i class="fa-solid fa-cart-plus"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
+    <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+        <i class="fa-solid fa-heart text-3xl"></i>
+    </div>
+    <h3 class="text-xl font-medium text-gray-900 mb-2">No favourites yet</h3>
+    <p class="text-gray-500 mb-6">Save items you like by clicking the heart icon.</p>
+    <a href="{{ url_for('shop_auth.shop') }}" class="text-jimmy-red font-semibold hover:underline">Explore Products</a>
+</div>
+{% endif %}
+
+{% endblock %}

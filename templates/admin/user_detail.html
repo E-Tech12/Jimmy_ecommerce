@@ -1,0 +1,143 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}User Details | Admin Panel{% endblock %}
+{% block header_title %}User Profile: {{ user.first_name }} {{ user.last_name }}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="{{ url_for('admin_auth.users') }}" class="text-gray-500 hover:text-jimmy-red transition flex items-center gap-2 text-sm font-medium">
+        <i class="fa-solid fa-arrow-left"></i> Back to Users
+    </a>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    
+    <!-- User Info Card -->
+    <div class="lg:col-span-1 space-y-8">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
+            <div class="w-24 h-24 rounded-full bg-jimmy-red/10 text-jimmy-red flex items-center justify-center font-bold text-4xl mx-auto mb-4">
+                {{ user.first_name[0] }}
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900">{{ user.first_name }} {{ user.last_name }}</h2>
+            <p class="text-gray-500 mb-6">{{ user.email }}</p>
+            
+            <div class="space-y-3 text-left border-t border-gray-100 pt-6">
+                <div class="flex items-center gap-3 text-gray-600">
+                    <i class="fa-solid fa-phone w-5 text-jimmy-red"></i>
+                    <span>{{ user.phone_number }}</span>
+                </div>
+                <div class="flex items-center gap-3 text-gray-600">
+                    <i class="fa-solid fa-check-circle w-5 {% if user.is_verified %}text-green-500{% else %}text-gray-300{% endif %}"></i>
+                    <span>{% if user.is_verified %}Verified Account{% else %}Unverified Account{% endif %}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Saved Addresses -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-map-location-dot text-jimmy-red"></i> Saved Addresses
+            </h3>
+            
+            {% if user.addresses %}
+            <div class="space-y-4">
+                {% for addr in user.addresses %}
+                <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 relative">
+                    {% if addr.is_default %}
+                    <span class="absolute top-3 right-3 text-[10px] font-bold text-jimmy-red uppercase tracking-wider">Default</span>
+                    {% endif %}
+                    <p class="font-semibold text-gray-900 text-sm">{{ addr.street }}</p>
+                    <p class="text-xs text-gray-500 mt-1">{{ addr.city }}, {{ addr.state }}</p>
+                    <p class="text-xs text-gray-500 mt-1"><i class="fa-solid fa-phone"></i> {{ addr.phone }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-500 italic">No addresses saved.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Order History & Favourites -->
+    <div class="lg:col-span-2 space-y-8">
+        
+        <!-- Order History -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-5 border-b border-gray-100 bg-gray-50">
+                <h3 class="font-semibold text-gray-900 text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-box text-jimmy-red"></i> Order History
+                </h3>
+            </div>
+            
+            {% if user.orders %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-gray-600">
+                    <thead class="bg-white text-gray-700 border-b border-gray-100">
+                        <tr>
+                            <th class="px-6 py-4 font-semibold">Order ID</th>
+                            <th class="px-6 py-4 font-semibold">Date</th>
+                            <th class="px-6 py-4 font-semibold">Status</th>
+                            <th class="px-6 py-4 font-semibold">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for order in user.orders|sort(attribute='created_at', reverse=true) %}
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="px-6 py-4 font-medium text-gray-900">#{{ order.id }}</td>
+                            <td class="px-6 py-4">{{ order.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 py-1 rounded-full text-xs font-semibold
+                                    {% if order.status == 'Delivered' %}bg-green-100 text-green-700
+                                    {% elif order.status == 'Processing' %}bg-blue-100 text-blue-700
+                                    {% elif order.status == 'Cancelled' %}bg-red-100 text-red-700
+                                    {% else %}bg-orange-100 text-orange-700{% endif %}">
+                                    {{ order.status }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 font-medium text-gray-900">₦{{ "{:,.2f}".format(order.total_amount) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="p-8 text-center text-gray-500">
+                <p>This user has no orders.</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Favourited Items -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-5 border-b border-gray-100 bg-gray-50">
+                <h3 class="font-semibold text-gray-900 text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-heart text-jimmy-red"></i> Favourited Items
+                </h3>
+            </div>
+            
+            {% if user.favourites %}
+            <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {% for fav in user.favourites %}
+                <div class="flex items-center gap-4 p-3 border border-gray-100 rounded-xl hover:bg-gray-50 transition">
+                    <div class="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden shrink-0">
+                        {% if fav.product.images %}
+                        <img src="{{ url_for('static', filename='uploads/products/' + fav.product.images[0].filename) }}" class="w-full h-full object-cover">
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-gray-900 text-sm line-clamp-1">{{ fav.product.name }}</h4>
+                        <p class="text-jimmy-red font-medium text-sm mt-1">₦{{ "{:,.2f}".format(fav.product.price) }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="p-8 text-center text-gray-500">
+                <p>No favorited items.</p>
+            </div>
+            {% endif %}
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

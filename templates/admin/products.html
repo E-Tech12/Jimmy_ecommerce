@@ -1,0 +1,80 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Products | Admin Panel{% endblock %}
+{% block header_title %}Products{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h2 class="text-xl font-bold text-gray-800">All Products</h2>
+    <a href="{{ url_for('admin_auth.add_product') }}" class="bg-jimmy-red text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-red-800 transition flex items-center gap-2 shadow-sm">
+        <i class="fa-solid fa-plus"></i> Add New Product
+    </a>
+</div>
+
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    {% if products %}
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-gray-600">
+            <thead class="bg-gray-50 text-gray-700">
+                <tr>
+                    <th class="px-6 py-4 font-semibold w-20">Image</th>
+                    <th class="px-6 py-4 font-semibold">Name</th>
+                    <th class="px-6 py-4 font-semibold">Price</th>
+                    <th class="px-6 py-4 font-semibold">Stock</th>
+                    <th class="px-6 py-4 font-semibold">Date Added</th>
+                    <th class="px-6 py-4 font-semibold text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for product in products %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4">
+                        {% if product.images %}
+                            <div class="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden flex items-center justify-center border border-gray-200">
+                                <img src="{{ url_for('static', filename='uploads/products/' + product.images[0].filename) }}" alt="{{ product.name }}" class="w-full h-full object-cover">
+                            </div>
+                        {% else %}
+                            <div class="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 border border-gray-200">
+                                <i class="fa-solid fa-image"></i>
+                            </div>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="font-medium text-gray-900">{{ product.name }}</div>
+                        <div class="text-xs text-gray-500 mt-1 flex gap-1">
+                            {% if product.category %}<span class="bg-gray-100 px-2 py-0.5 rounded">{{ product.category.name }}</span>{% endif %}
+                            {% if product.is_featured %}<span class="text-jimmy-red"><i class="fa-solid fa-star text-[10px]"></i> Featured</span>{% endif %}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 font-medium text-jimmy-red">₦{{ "{:,.2f}".format(product.price) }}</td>
+                    <td class="px-6 py-4">
+                        {% if product.stock > 10 %}
+                            <span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-1 rounded-full">{{ product.stock }} in stock</span>
+                        {% elif product.stock > 0 %}
+                            <span class="bg-amber-100 text-amber-800 text-xs font-semibold px-2.5 py-1 rounded-full">Low Stock ({{ product.stock }})</span>
+                        {% else %}
+                            <span class="bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-1 rounded-full">Out of Stock</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-gray-500">{{ product.created_at.strftime('%Y-%m-%d') }}</td>
+                    <td class="px-6 py-4 text-right">
+                        <a href="{{ url_for('admin_auth.edit_product', product_id=product.id) }}" class="text-blue-600 hover:text-blue-800 mr-3 inline-block" title="Edit"><i class="fa-solid fa-pen-to-square"></i></a>
+                        <button class="text-red-600 hover:text-red-800 inline-block" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="p-12 text-center text-gray-500">
+        <i class="fa-solid fa-box-open text-5xl mb-4 text-gray-300"></i>
+        <h3 class="text-xl font-medium text-gray-700 mb-2">No products found</h3>
+        <p class="mb-6">Start building your catalog by adding your first product.</p>
+        <a href="{{ url_for('admin_auth.add_product') }}" class="bg-jimmy-red text-white px-6 py-3 rounded-xl font-semibold hover:bg-red-800 transition inline-flex items-center gap-2">
+            <i class="fa-solid fa-plus"></i> Add Product
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

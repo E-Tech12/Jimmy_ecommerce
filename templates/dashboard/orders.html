@@ -1,0 +1,60 @@
+{% extends "dashboard/layout.html" %}
+
+{% block dashboard_content %}
+<h2 class="text-2xl font-bold text-gray-900 mb-6">My Orders</h2>
+
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    {% if orders %}
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-gray-600">
+            <thead class="bg-gray-50 text-gray-700">
+                <tr>
+                    <th class="px-6 py-4 font-semibold">Order ID</th>
+                    <th class="px-6 py-4 font-semibold">Date</th>
+                    <th class="px-6 py-4 font-semibold">Items</th>
+                    <th class="px-6 py-4 font-semibold">Status</th>
+                    <th class="px-6 py-4 font-semibold">Total</th>
+                    <th class="px-6 py-4 font-semibold text-right">Receipt</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for order in orders %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 font-medium text-gray-900">#{{ order.id }}</td>
+                    <td class="px-6 py-4">{{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td class="px-6 py-4">{{ order.items|length }} items</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold
+                            {% if order.status == 'Delivered' %}bg-green-100 text-green-700
+                            {% elif order.status == 'Processing' %}bg-blue-100 text-blue-700
+                            {% elif order.status == 'Cancelled' %}bg-red-100 text-red-700
+                            {% else %}bg-orange-100 text-orange-700{% endif %}">
+                            {{ order.status }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 font-medium text-gray-900">₦{{ "{:,.2f}".format(order.total_amount) }}</td>
+                    <td class="px-6 py-4 text-right">
+                        {% if order.payment_status == 'Paid' %}
+                        <a href="{{ url_for('dashboard_auth.order_receipt', order_id=order.id) }}" target="_blank" class="text-jimmy-red hover:text-red-800 font-medium text-xs flex items-center gap-1 justify-end ml-auto">
+                            <i class="fa-solid fa-download"></i> Receipt
+                        </a>
+                        {% else %}
+                        <span class="text-xs text-gray-400">{{ order.payment_status }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-16 text-gray-500">
+        <i class="fa-solid fa-box-open text-5xl mb-4 text-gray-300"></i>
+        <p class="text-lg">You haven't placed any orders yet.</p>
+        <a href="{{ url_for('shop_auth.shop') }}" class="inline-flex items-center gap-2 mt-6 bg-jimmy-red text-white px-6 py-2.5 rounded-xl font-semibold hover:bg-red-800 transition shadow-sm">
+            Start Shopping
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
