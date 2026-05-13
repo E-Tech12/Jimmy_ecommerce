@@ -37,6 +37,10 @@ app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads', 'products')
 
 mail = Mail(app)
 db.init_app(app)
+
+with app.app_context():
+    db.create_all()
+    
 migrate = Migrate(app, db)
 
 login_manager = LoginManager()
