@@ -114,7 +114,7 @@ def register():
             mail.send(msg)
             current_app.logger.info(f"Signup OTP sent successfully to {email}")
         except Exception as e:
-            current_app.logger.error(f"Failed to send signup OTP to {email}", exc_info=True)
+            current_app.logger.error(f"MAIL ERROR: {str(e)}", exc_info=True)
             flash("Failed to send OTP email, but your account was created. Please try logging in to trigger a new OTP.")
             return redirect(url_for('auth.login'))
 
