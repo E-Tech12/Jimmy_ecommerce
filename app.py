@@ -17,7 +17,7 @@ from routes.admin_routes import admin_auth
 from routes.shop_routes import shop_auth
 from routes.checkout_routes import checkout_auth
 
-load_dotenv()
+load_dotenv(override=True)
 
 app = Flask(__name__)
 

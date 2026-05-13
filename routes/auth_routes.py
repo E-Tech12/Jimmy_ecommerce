@@ -42,7 +42,7 @@ def login():
                 db.session.commit()
                 
                 msg = Message(
-                    subject="Your Signup OTP - BITE ON GO",
+                    subject="Your Signup OTP - JimmyElectronics",
                     sender=current_app.config.get('MAIL_USERNAME', 'cyberdev203@gmail.com'),
                     recipients=[user.email],
                     body=f"Hello {user.first_name},\n\nYour OTP for signup verification is: {otp}\n\nThis OTP is valid for 5 minutes.\n\nBest regards."
@@ -105,7 +105,7 @@ def register():
 
         # Send Email
         msg = Message(
-            subject="Your Signup OTP - BITE ON GO",
+            subject="Your Signup OTP - JimmyElectronics",
             sender=current_app.config.get('MAIL_USERNAME', 'cyberdev203@gmail.com'),
             recipients=[email],
             body=f"Hello {new_user.first_name},\n\nYour OTP for signup verification is: {otp}\n\nThis OTP is valid for 5 minutes.\n\nBest regards."
@@ -176,42 +176,88 @@ def verify_signup():
 
     return render_template("verify_signup.html", email=user.email)
 
-
-
 # -------------------- FORGOT PASSWORD --------------------
 @auth.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
+
     if request.method == 'POST':
+
         email = request.form.get('email')
-        current_app.logger.info(f"Password reset requested for email: {email}")
+
+        current_app.logger.info(
+            f"Password reset requested for email: {email}"
+        )
 
         user = User.query.filter_by(email=email).first()
+
         if not user:
-            current_app.logger.warning(f"Password reset failed – email not found: {email}")
+            current_app.logger.warning(
+                f"Password reset failed – email not found: {email}"
+            )
+
             flash("No user found with this email.")
+
             return redirect(url_for('auth.forgot_password'))
 
+        # Generate OTP
         otp = str(random.randint(100000, 999999))
-        reset_request = PasswordReset(user_id=user.id, otp=otp)
+
+        reset_request = PasswordReset(
+            user_id=user.id,
+            otp=otp
+        )
+
         db.session.add(reset_request)
         db.session.commit()
 
+        # Create email message
         msg = Message(
             subject="Your OTP for Password Reset - BITE ON GO",
-            sender=current_app.config.get('MAIL_USERNAME', 'cyberdev203@gmail.com'),
+            sender=current_app.config['MAIL_USERNAME'],
             recipients=[email],
-            body=f"Hello {user.first_name},\n\nYour OTP for password reset is: {otp}\n\nThis OTP is valid for 1 minute.\n\nIf you did not request a password reset, please ignore this email.\n\nBest regards."
+            body=f"""
+Hello {user.first_name},
+
+Your OTP for password reset is: {otp}
+
+This OTP is valid for 1 minute.
+
+If you did not request a password reset,
+please ignore this email.
+
+Best regards.
+"""
         )
+
         try:
-            mail.send(msg) 
-            current_app.logger.info(f"OTP sent successfully to {email}")
-            flash("OTP sent to your email.")
-            return redirect(url_for('auth.verify_otp'))
-        except Exception as e:
-            current_app.logger.error(
-                f"Failed to send OTP to {email}", exc_info=True
+
+            print("MAIL_USERNAME:",
+                  current_app.config['MAIL_USERNAME'])
+
+            print("MAIL_PASSWORD:",
+                  current_app.config['MAIL_PASSWORD'])
+
+            # Send email
+            mail.send(msg)
+
+            current_app.logger.info(
+                f"OTP sent successfully to {email}"
             )
+
+            flash("OTP sent to your email.")
+
+            return redirect(url_for('auth.verify_otp'))
+
+        except Exception as e:
+
+            current_app.logger.error(
+                f"Failed to send OTP: {e}"
+            )
+
+            print(e)
+
             flash("Failed to send OTP. Try again later.")
+
             return redirect(url_for('auth.forgot_password'))
 
     return render_template("forgot_password.html")
