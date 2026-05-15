@@ -69,8 +69,8 @@ import os
 import uuid
 
 supabase = create_client(
-    os.getenv("SUPABASE_ENDPOINT"),
-    os.getenv("SUPABASE_SECRET_KEY")
+    os.getenv("SUPABASE_ENDPOINT", "https://iwfvsenageatieykbovx.storage.supabase.co/storage/v1/s3"),
+    os.getenv("SUPABASE_SECRET_KEY", "f26ddc9e593dccd80338cc4a46b46f78d7466db04e36c7ab8964d168c52a2177")
 )
 
 
