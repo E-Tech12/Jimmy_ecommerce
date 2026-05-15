@@ -20,7 +20,7 @@ from routes.checkout_routes import checkout_auth
 load_dotenv(override=True)
 
 # Check if running on Vercel
-is_vercel = os.getenv('VERCEL') == '1'
+is_vercel = os.environ.get('VERCEL') == '1'
 
 if is_vercel:
     app = Flask(__name__, instance_path='/tmp')
@@ -31,12 +31,15 @@ else:
 # Configuration
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your_secret_key')
 
-# Database configuration: Use Vercel Postgres URL if available, else fallback to SQLite
-database_url = os.getenv('POSTGRES_URL')
+# Database configuration: Use Vercel/Neon URL if available, else fallback to SQLite
+database_url = os.getenv('DATABASE_URL') or os.getenv('POSTGRES_URL')
 if database_url and database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///site.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url or (
+    f"sqlite:///{os.path.join('/tmp', 'site.db')}" if is_vercel else 'sqlite:///site.db'
+)
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
 app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))
 app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'True') == 'True'

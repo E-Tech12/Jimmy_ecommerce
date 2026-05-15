@@ -206,6 +206,34 @@ def edit_product(product_id):
         product.is_promoted = request.form.get('is_promoted') == 'on'
         product.is_installmental_payment = request.form.get('is_installmental_payment') == 'on'
         
+        # Handle new images
+        images = request.files.getlist('images')
+        image_count = len(product.images)
+        for img in images:
+            if img and img.filename and image_count < 5:
+                upload_result = upload_to_supabase(img)
+                if upload_result:
+                    new_image = ProductImage(
+                        product_id=product.id,
+                        filename=upload_result["filename"],
+                        url=upload_result["url"]
+                    )
+                    db.session.add(new_image)
+                    image_count += 1
+                else:
+                    # Fallback to local
+                    from werkzeug.utils import secure_filename
+                    import uuid
+                    original_filename = secure_filename(img.filename)
+                    image_filename = f"{uuid.uuid4().hex}_{original_filename}"
+                    upload_path = os.path.join(current_app.config['UPLOAD_FOLDER'], image_filename)
+                    os.makedirs(os.path.dirname(upload_path), exist_ok=True)
+                    img.seek(0)
+                    img.save(upload_path)
+                    new_image = ProductImage(product_id=product.id, filename=image_filename, url=None)
+                    db.session.add(new_image)
+                    image_count += 1
+
         db.session.commit()
         flash('Product updated successfully!', 'success')
         return redirect(url_for('admin_auth.products'))
