@@ -19,7 +19,7 @@
                 <div class="p-8 md:border-r border-gray-100 bg-gray-50/50">
                     <div class="aspect-w-1 aspect-h-1 w-full bg-white rounded-2xl border border-gray-100 overflow-hidden mb-4 relative" id="main-image-container">
                         {% if product.images %}
-                            <img id="main-image" src="{{ url_for('static', filename='uploads/products/' + product.images[0].filename) }}" alt="{{ product.name }}" class="w-full h-full object-cover object-center">
+                            <img id="main-image" src="{{ product.images[0].url if product.images[0].url else url_for('static', filename='uploads/products/' + product.images[0].filename) }}" alt="{{ product.name }}" class="w-full h-full object-cover object-center">
                         {% else %}
                             <div class="w-full h-full flex items-center justify-center text-gray-400">
                                 <i class="fa-solid fa-image text-6xl"></i>
@@ -30,8 +30,8 @@
                     {% if product.images and product.images|length > 1 %}
                     <div class="grid grid-cols-5 gap-3">
                         {% for img in product.images %}
-                        <div class="aspect-w-1 aspect-h-1 rounded-xl border-2 {% if loop.index0 == 0 %}border-jimmy-red{% else %}border-transparent hover:border-gray-200{% endif %} overflow-hidden cursor-pointer transition-colors thumbnail-container" onclick="updateMainImage(this, '{{ url_for('static', filename='uploads/products/' + img.filename) }}')">
-                            <img src="{{ url_for('static', filename='uploads/products/' + img.filename) }}" class="w-full h-full object-cover">
+                        <div class="aspect-w-1 aspect-h-1 rounded-xl border-2 {% if loop.index0 == 0 %}border-jimmy-red{% else %}border-transparent hover:border-gray-200{% endif %} overflow-hidden cursor-pointer transition-colors thumbnail-container" onclick="updateMainImage(this, '{{ img.url if img.url else url_for('static', filename='uploads/products/' + img.filename) }}')">
+                            <img src="{{ img.url if img.url else url_for('static', filename='uploads/products/' + img.filename) }}" class="w-full h-full object-cover">
                         </div>
                         {% endfor %}
                     </div>

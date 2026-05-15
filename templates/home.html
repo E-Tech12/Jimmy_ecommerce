@@ -54,35 +54,18 @@
         </a>
     </div>
 
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-        <!-- Category 1 -->
-        <a href="#" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-jimmy-red/30 transition group text-center">
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
+        {% for cat in categories %}
+        <a href="{{ url_for('shop_auth.shop', category=cat.id) }}" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-jimmy-red/30 transition group text-center">
             <div class="w-16 h-16 mx-auto bg-gray-50 rounded-full flex items-center justify-center mb-4 group-hover:bg-red-50 transition">
-                <i class="fa-solid fa-laptop text-2xl text-gray-700 group-hover:text-jimmy-red transition"></i>
+                {% if 'Laptop' in cat.name %}<i class="fa-solid fa-laptop text-2xl text-gray-700 group-hover:text-jimmy-red transition"></i>
+                {% elif 'Phone' in cat.name %}<i class="fa-solid fa-mobile-screen text-2xl text-gray-700 group-hover:text-jimmy-red transition"></i>
+                {% elif 'Audio' in cat.name %}<i class="fa-solid fa-headphones text-2xl text-gray-700 group-hover:text-jimmy-red transition"></i>
+                {% else %}<i class="fa-solid fa-tag text-2xl text-gray-700 group-hover:text-jimmy-red transition"></i>{% endif %}
             </div>
-            <h3 class="font-semibold text-gray-900">Laptops</h3>
+            <h3 class="font-semibold text-gray-900">{{ cat.name }}</h3>
         </a>
-        <!-- Category 2 -->
-        <a href="#" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-jimmy-red/30 transition group text-center">
-            <div class="w-16 h-16 mx-auto bg-gray-50 rounded-full flex items-center justify-center mb-4 group-hover:bg-red-50 transition">
-                <i class="fa-solid fa-mobile-screen text-2xl text-gray-700 group-hover:text-jimmy-red transition"></i>
-            </div>
-            <h3 class="font-semibold text-gray-900">Smartphones</h3>
-        </a>
-        <!-- Category 3 -->
-        <a href="#" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-jimmy-red/30 transition group text-center">
-            <div class="w-16 h-16 mx-auto bg-gray-50 rounded-full flex items-center justify-center mb-4 group-hover:bg-red-50 transition">
-                <i class="fa-solid fa-headphones text-2xl text-gray-700 group-hover:text-jimmy-red transition"></i>
-            </div>
-            <h3 class="font-semibold text-gray-900">Audio</h3>
-        </a>
-        <!-- Category 4 -->
-        <a href="#" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-jimmy-red/30 transition group text-center">
-            <div class="w-16 h-16 mx-auto bg-gray-50 rounded-full flex items-center justify-center mb-4 group-hover:bg-red-50 transition">
-                <i class="fa-solid fa-gamepad text-2xl text-gray-700 group-hover:text-jimmy-red transition"></i>
-            </div>
-            <h3 class="font-semibold text-gray-900">Gaming</h3>
-        </a>
+        {% endfor %}
     </div>
 </div>
 
@@ -96,98 +79,40 @@
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- Product Card 1 -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition group">
+        {% for product in trending %}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition group flex flex-col">
             <div class="h-48 bg-gray-100 flex items-center justify-center relative">
-                <div class="absolute top-3 left-3 bg-jimmy-red text-white text-xs font-bold px-2 py-1 rounded">HOT</div>
-                <i class="fa-solid fa-image text-4xl text-gray-300 group-hover:scale-110 transition duration-300"></i>
+                <a href="{{ url_for('shop_auth.product_detail', product_id=product.id) }}" class="w-full h-full">
+                {% if product.images %}
+                    <img src="{{ product.images[0].url if product.images[0].url else url_for('static', filename='uploads/products/' + product.images[0].filename) }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-300">
+                {% else %}
+                    <div class="w-full h-full flex items-center justify-center">
+                        <i class="fa-solid fa-image text-4xl text-gray-300"></i>
+                    </div>
+                {% endif %}
+                </a>
+                {% if product.is_promoted %}
+                <div class="absolute top-3 left-3 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded">PROMO</div>
+                {% endif %}
             </div>
-            <div class="p-5">
-                <div class="flex justify-between items-start mb-2">
-                    <h3 class="font-semibold text-gray-900 text-lg leading-tight">MacBook Pro 16" M3 Max</h3>
+            <div class="p-5 flex-1 flex flex-col">
+                <h3 class="font-semibold text-gray-900 text-lg leading-tight mb-2">
+                    <a href="{{ url_for('shop_auth.product_detail', product_id=product.id) }}" class="hover:text-jimmy-red">{{ product.name }}</a>
+                </h3>
+                <div class="mb-4 mt-auto">
+                    <span class="font-bold text-xl text-gray-900">₦{{ "{:,.2f}".format(product.price) }}</span>
+                    {% if product.is_installmental_payment %}
+                    <p class="text-xs text-gray-500 mt-1">Installment available</p>
+                    {% endif %}
                 </div>
-                <div class="flex items-center gap-1 text-yellow-400 text-sm mb-3">
-                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i>
-                    <span class="text-gray-400 ml-1">(24)</span>
-                </div>
-                <div class="mb-4">
-                    <span class="font-bold text-xl text-gray-900">₦2,500,000</span>
-                    <p class="text-sm text-gray-500 mt-1">or <span class="text-jimmy-red font-semibold">₦250k/mo</span></p>
-                </div>
-                <button class="w-full bg-gray-900 text-white py-2.5 rounded-xl font-medium hover:bg-jimmy-red transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-cart-plus"></i> Add to Cart
-                </button>
+                <form action="{{ url_for('shop_auth.add_to_cart', product_id=product.id) }}" method="POST">
+                    <button type="submit" class="w-full bg-gray-900 text-white py-2.5 rounded-xl font-medium hover:bg-jimmy-red transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-cart-plus"></i> Add to Cart
+                    </button>
+                </form>
             </div>
         </div>
-
-        <!-- Product Card 2 -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition group">
-            <div class="h-48 bg-gray-100 flex items-center justify-center relative">
-                <i class="fa-solid fa-image text-4xl text-gray-300 group-hover:scale-110 transition duration-300"></i>
-            </div>
-            <div class="p-5">
-                <div class="flex justify-between items-start mb-2">
-                    <h3 class="font-semibold text-gray-900 text-lg leading-tight">iPhone 15 Pro Max 256GB</h3>
-                </div>
-                <div class="flex items-center gap-1 text-yellow-400 text-sm mb-3">
-                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
-                    <span class="text-gray-400 ml-1">(128)</span>
-                </div>
-                <div class="mb-4">
-                    <span class="font-bold text-xl text-gray-900">₦1,350,000</span>
-                    <p class="text-sm text-gray-500 mt-1">or <span class="text-jimmy-red font-semibold">₦135k/mo</span></p>
-                </div>
-                <button class="w-full bg-gray-900 text-white py-2.5 rounded-xl font-medium hover:bg-jimmy-red transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-cart-plus"></i> Add to Cart
-                </button>
-            </div>
-        </div>
-
-        <!-- Product Card 3 -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition group">
-            <div class="h-48 bg-gray-100 flex items-center justify-center relative">
-                <i class="fa-solid fa-image text-4xl text-gray-300 group-hover:scale-110 transition duration-300"></i>
-            </div>
-            <div class="p-5">
-                <div class="flex justify-between items-start mb-2">
-                    <h3 class="font-semibold text-gray-900 text-lg leading-tight">Sony WH-1000XM5</h3>
-                </div>
-                <div class="flex items-center gap-1 text-yellow-400 text-sm mb-3">
-                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i>
-                    <span class="text-gray-400 ml-1">(45)</span>
-                </div>
-                <div class="mb-4">
-                    <span class="font-bold text-xl text-gray-900">₦350,000</span>
-                    <p class="text-sm text-gray-500 mt-1">or <span class="text-jimmy-red font-semibold">₦35k/mo</span></p>
-                </div>
-                <button class="w-full bg-gray-900 text-white py-2.5 rounded-xl font-medium hover:bg-jimmy-red transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-cart-plus"></i> Add to Cart
-                </button>
-            </div>
-        </div>
-
-        <!-- Product Card 4 -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition group">
-            <div class="h-48 bg-gray-100 flex items-center justify-center relative">
-                <i class="fa-solid fa-image text-4xl text-gray-300 group-hover:scale-110 transition duration-300"></i>
-            </div>
-            <div class="p-5">
-                <div class="flex justify-between items-start mb-2">
-                    <h3 class="font-semibold text-gray-900 text-lg leading-tight">PlayStation 5 Console</h3>
-                </div>
-                <div class="flex items-center gap-1 text-yellow-400 text-sm mb-3">
-                    <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i>
-                    <span class="text-gray-400 ml-1">(89)</span>
-                </div>
-                <div class="mb-4">
-                    <span class="font-bold text-xl text-gray-900">₦650,000</span>
-                    <p class="text-sm text-gray-500 mt-1">or <span class="text-jimmy-red font-semibold">₦65k/mo</span></p>
-                </div>
-                <button class="w-full bg-gray-900 text-white py-2.5 rounded-xl font-medium hover:bg-jimmy-red transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-cart-plus"></i> Add to Cart
-                </button>
-            </div>
-        </div>
+        {% endfor %}
     </div>
 </div>
 

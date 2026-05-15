@@ -64,32 +64,38 @@ def delete_category(category_id):
     flash('Category deleted.', 'success')
     return redirect(url_for('admin_auth.categories'))
 
-from supabase import create_client
-import os
-import uuid
+# Supabase setup
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
-supabase = create_client(
-    os.getenv("SUPABASE_ENDPOINT", "https://iwfvsenageatieykbovx.storage.supabase.co/storage/v1/s3"),
-    os.getenv("SUPABASE_SECRET_KEY", "f26ddc9e593dccd80338cc4a46b46f78d7466db04e36c7ab8964d168c52a2177")
-)
-
+supabase = None
+if SUPABASE_URL and SUPABASE_KEY:
+    try:
+        from supabase import create_client
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+    except Exception as e:
+        print(f"Failed to initialize Supabase client: {e}")
 
 def upload_to_supabase(file):
-    filename = f"{uuid.uuid4()}_{file.filename}"
-
-    file_bytes = file.read()
-
-    res = supabase.storage.from_("products").upload(
-        filename,
-        file_bytes,
-        {
-            "content-type": file.content_type
-        }
-    )
-
-    public_url = supabase.storage.from_("products").get_public_url(filename)
-
-    return public_url
+    if not supabase:
+        return None
+        
+    try:
+        filename = f"{uuid.uuid4().hex}_{secure_filename(file.filename)}"
+        file_bytes = file.read()
+        
+        # Reset file pointer if needed, but we already read it
+        res = supabase.storage.from_("products").upload(
+            filename,
+            file_bytes,
+            {"content-type": file.content_type}
+        )
+        
+        public_url = supabase.storage.from_("products").get_public_url(filename)
+        return {"filename": filename, "url": public_url}
+    except Exception as e:
+        print(f"Supabase upload error: {e}")
+        return None
 
 
 @admin_auth.route('/products/add', methods=['GET', 'POST'])
@@ -135,32 +141,40 @@ def add_product():
         # Handle multiple images
         images = request.files.getlist('images')
         image_count = 0
-        import uuid
         for img in images:
             if img and img.filename and image_count < 5:
-                original_filename = secure_filename(img.filename)
-                image_filename = f"{uuid.uuid4().hex}_{original_filename}"
-
-                file_bytes = img.read()
-
-                supabase.storage.from_("products").upload(
-                    image_filename,
-                    file_bytes,
-                    {
-                        "content-type": img.content_type
-                    }
-                )
-
-                image_url = supabase.storage.from_("products").get_public_url(image_filename)
-
-                new_image = ProductImage(
-                    product_id=new_product.id,
-                    filename=image_filename,
-                    url=image_url  # add this column if you don’t already have it
-                )
-
-                db.session.add(new_image)
-                image_count += 1
+                upload_result = upload_to_supabase(img)
+                
+                if upload_result:
+                    new_image = ProductImage(
+                        product_id=new_product.id,
+                        filename=upload_result["filename"],
+                        url=upload_result["url"]
+                    )
+                    db.session.add(new_image)
+                    image_count += 1
+                else:
+                    # Fallback to local storage if Supabase fails or is not configured
+                    original_filename = secure_filename(img.filename)
+                    image_filename = f"{uuid.uuid4().hex}_{original_filename}"
+                    upload_path = os.path.join(current_app.config['UPLOAD_FOLDER'], image_filename)
+                    
+                    # Ensure directory exists
+                    os.makedirs(os.path.dirname(upload_path), exist_ok=True)
+                    
+                    # Since we might have read the file in upload_to_supabase, we might need to handle the stream
+                    # But if upload_to_supabase returned None, we probably have the bytes or can seek back if it's a file
+                    # However, upload_to_supabase reads it into memory. Let's assume we can still save it or pass the bytes.
+                    img.seek(0)
+                    img.save(upload_path)
+                    
+                    new_image = ProductImage(
+                        product_id=new_product.id,
+                        filename=image_filename,
+                        url=None
+                    )
+                    db.session.add(new_image)
+                    image_count += 1
 
         db.session.commit()
         
