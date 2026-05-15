@@ -19,7 +19,13 @@ from routes.checkout_routes import checkout_auth
 
 load_dotenv(override=True)
 
-app = Flask(__name__)
+# Check if running on Vercel
+is_vercel = os.getenv('VERCEL') == '1'
+
+if is_vercel:
+    app = Flask(__name__, instance_path='/tmp')
+else:
+    app = Flask(__name__)
 
 
 # Configuration
