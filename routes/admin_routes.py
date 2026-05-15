@@ -64,6 +64,34 @@ def delete_category(category_id):
     flash('Category deleted.', 'success')
     return redirect(url_for('admin_auth.categories'))
 
+from supabase import create_client
+import os
+import uuid
+
+supabase = create_client(
+    os.getenv("SUPABASE_ENDPOINT"),
+    os.getenv("SUPABASE_SECRET_KEY")
+)
+
+
+def upload_to_supabase(file):
+    filename = f"{uuid.uuid4()}_{file.filename}"
+
+    file_bytes = file.read()
+
+    res = supabase.storage.from_("products").upload(
+        filename,
+        file_bytes,
+        {
+            "content-type": file.content_type
+        }
+    )
+
+    public_url = supabase.storage.from_("products").get_public_url(filename)
+
+    return public_url
+
+
 @admin_auth.route('/products/add', methods=['GET', 'POST'])
 @admin_required
 def add_product():
@@ -112,14 +140,28 @@ def add_product():
             if img and img.filename and image_count < 5:
                 original_filename = secure_filename(img.filename)
                 image_filename = f"{uuid.uuid4().hex}_{original_filename}"
-                # upload_path = os.path.join(current_app.config['UPLOAD_FOLDER'], image_filename)
-                upload_path = f"/temps/{image_filename}"
-                img.save(upload_path)
-                
-                new_image = ProductImage(product_id=new_product.id, filename=image_filename)
+
+                file_bytes = img.read()
+
+                supabase.storage.from_("products").upload(
+                    image_filename,
+                    file_bytes,
+                    {
+                        "content-type": img.content_type
+                    }
+                )
+
+                image_url = supabase.storage.from_("products").get_public_url(image_filename)
+
+                new_image = ProductImage(
+                    product_id=new_product.id,
+                    filename=image_filename,
+                    url=image_url  # add this column if you don’t already have it
+                )
+
                 db.session.add(new_image)
                 image_count += 1
-                
+
         db.session.commit()
         
         flash('Product added successfully!', 'success')

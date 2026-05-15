@@ -76,6 +76,7 @@ class ProductImage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
     filename = db.Column(db.String(255), nullable=False)
+    url = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Order(db.Model):
