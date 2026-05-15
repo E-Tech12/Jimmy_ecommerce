@@ -22,9 +22,15 @@ load_dotenv(override=True)
 app = Flask(__name__)
 
 
-# Configurarion
+# Configuration
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your_secret_key')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+
+# Database configuration: Use Vercel Postgres URL if available, else fallback to SQLite
+database_url = os.getenv('POSTGRES_URL')
+if database_url and database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url or 'sqlite:///site.db'
 app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
 app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))
 app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'True') == 'True'
