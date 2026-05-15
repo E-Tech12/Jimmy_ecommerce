@@ -113,7 +113,7 @@ def add_product():
                 original_filename = secure_filename(img.filename)
                 image_filename = f"{uuid.uuid4().hex}_{original_filename}"
                 # upload_path = os.path.join(current_app.config['UPLOAD_FOLDER'], image_filename)
-                upload_path = f"/temp/{image_filename}"
+                upload_path = f"/temps/{image_filename}"
                 img.save(upload_path)
                 
                 new_image = ProductImage(product_id=new_product.id, filename=image_filename)
