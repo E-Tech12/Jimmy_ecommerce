@@ -1,4 +1,5 @@
 import os
+import uuid
 from functools import wraps
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
 from werkzeug.utils import secure_filename
