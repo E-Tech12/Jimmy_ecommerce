@@ -22,3 +22,4 @@ with engine.connect() as conn:
         print("Column added successfully!")
     except Exception as e:
         print(f"Error: {e}")
+# ok
