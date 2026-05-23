@@ -2,8 +2,9 @@ import os
 import requests
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
-from models import CartItem, Product, Order, OrderItem, Address, Notification, db
+from models import CartItem, Product, Order, OrderItem, Address, Notification, InstallmentPlan, InstallmentPayment, db
 from datetime import datetime
+from datetime import timedelta
 
 checkout_auth = Blueprint('checkout_auth', __name__)
 
@@ -81,8 +82,13 @@ def checkout():
     total = sum(item.product.price * item.quantity for item in cart_items)
     addresses = Address.query.filter_by(user_id=current_user.id).all()
     
+    # Check if any item supports installment
+    installment_eligible_items = [item for item in cart_items if item.product.is_installmental_payment]
+    
     if request.method == 'POST':
         address_id = request.form.get('address_id')
+        payment_method = request.form.get('payment_method', 'full')  # 'full' or 'installment'
+        
         if not address_id:
             flash('Please select a delivery address.', 'error')
             return redirect(url_for('checkout_auth.checkout'))
@@ -100,7 +106,7 @@ def checkout():
             payment_status='Pending'
         )
         db.session.add(new_order)
-        db.session.flush() # get ID
+        db.session.flush()
         
         for item in cart_items:
             order_item = OrderItem(
@@ -113,11 +119,66 @@ def checkout():
             
         db.session.commit()
         
-        # Here we would normally redirect to Flutterwave standard checkout
-        # For simplicity in MVP, we can render a page with the Flutterwave JS inline
-        return render_template('payment.html', order=new_order, flw_public_key=os.getenv('FLW_PUBLIC_KEY'))
+        # Determine payment amount and create installment plans
+        pay_amount = total
+        if payment_method == 'installment' and installment_eligible_items:
+            # Create per-product installment plans
+            for cart_item in installment_eligible_items:
+                product = cart_item.product
+                quantity = cart_item.quantity
+                
+                # Calculate installment price with surcharge
+                base_price = product.price * quantity
+                surcharge = base_price * (product.installment_charge_percent / 100.0)
+                total_with_surcharge = base_price + surcharge
+                
+                # Base amount (down payment)
+                base_amount = total_with_surcharge * (product.installment_base_percent / 100.0)
+                remaining = total_with_surcharge - base_amount
+                
+                # Create InstallmentPlan for this product
+                plan = InstallmentPlan(
+                    order_id=new_order.id,
+                    total_amount=total_with_surcharge,
+                    base_amount=base_amount,
+                    remaining_amount=remaining,
+                    months=product.installment_months,
+                    interval_days=product.installment_interval_days,
+                    next_due_date=datetime.utcnow() + timedelta(days=product.installment_interval_days)
+                )
+                db.session.add(plan)
+                db.session.flush()
+                
+                # Create initial payment attempt for base amount
+                initial_payment = InstallmentPayment(
+                    plan_id=plan.id,
+                    due_date=datetime.utcnow(),
+                    amount=base_amount,
+                    is_paid=False,
+                    payment_reference=tx_ref
+                )
+                db.session.add(initial_payment)
+                
+                # Create scheduled payments for remaining balance
+                if product.installment_months > 0 and remaining > 0:
+                    per_month = round(remaining / product.installment_months, 2)
+                    for i in range(1, product.installment_months + 1):
+                        due = datetime.utcnow() + timedelta(days=product.installment_interval_days * i)
+                        sched = InstallmentPayment(plan_id=plan.id, due_date=due, amount=per_month, is_paid=False)
+                        db.session.add(sched)
+            
+            # For non-installment items, add full price to first payment tx_ref
+            non_install_total = sum(item.product.price * item.quantity for item in cart_items if not item.product.is_installmental_payment)
+            
+            # Calculate total to pay now (sum of all base amounts + full price of non-installment items)
+            all_base_amounts = sum(plan.base_amount for plan in InstallmentPlan.query.filter_by(order_id=new_order.id).all())
+            pay_amount = all_base_amounts + non_install_total
+            
+            db.session.commit()
         
-    return render_template('checkout.html', cart_items=cart_items, total=total, addresses=addresses)
+        return render_template('payment.html', order=new_order, flw_public_key=os.getenv('FLW_PUBLIC_KEY'), pay_amount=round(pay_amount, 2))
+        
+    return render_template('checkout.html', cart_items=cart_items, total=total, addresses=addresses, installment_eligible_items=installment_eligible_items)
 
 @checkout_auth.route('/checkout/verify')
 @login_required
@@ -140,25 +201,54 @@ def verify_payment():
             
             if res_data['status'] == 'success' and res_data['data']['status'] == 'successful':
                 # Payment successful!
-                order.payment_status = 'Paid'
-                order.status = 'Processing'
+                # Mark all initial payments (with this tx_ref) as paid
+                initial_payments = InstallmentPayment.query.filter_by(payment_reference=tx_ref, is_paid=False).all()
                 
-                # Clear cart and deduct actual stock
-                cart_items = CartItem.query.filter_by(user_id=current_user.id).all()
-                for item in cart_items:
-                    product = Product.query.get(item.product_id)
-                    # Deduct actual stock
-                    product.stock -= item.quantity
-                    # Remove from reserved stock since it's bought
-                    product.reserved_stock -= item.quantity
-                    db.session.delete(item)
-                    
-                # Create Notification
-                notif = Notification(user_id=current_user.id, message=f"Payment successful for Order #{order.id}. Your order is now processing.")
+                for payment in initial_payments:
+                    payment.is_paid = True
+                    payment.paid_at = datetime.utcnow()
+                    # Update plan remaining
+                    plan = payment.plan
+                    plan.remaining_amount = round(plan.remaining_amount - payment.amount, 2)
+                    # Find next unpaid payment
+                    next_unpaid = InstallmentPayment.query.filter(InstallmentPayment.plan_id == plan.id, InstallmentPayment.is_paid == False).order_by(InstallmentPayment.due_date).first()
+                    if next_unpaid:
+                        plan.next_due_date = next_unpaid.due_date
+                    else:
+                        if plan.remaining_amount <= 0:
+                            plan.status = 'Completed'
+
+                # If stock hasn't been deducted yet, deduct and clear cart
+                if not order.stock_deducted:
+                    cart_items = CartItem.query.filter_by(user_id=current_user.id).all()
+                    for item in cart_items:
+                        product = Product.query.get(item.product_id)
+                        product.stock -= item.quantity
+                        if product.reserved_stock >= item.quantity:
+                            product.reserved_stock -= item.quantity
+                        db.session.delete(item)
+                    order.stock_deducted = True
+
+                # Check if all installment plans are completed
+                all_plans = InstallmentPlan.query.filter_by(order_id=order.id).all()
+                if all_plans:
+                    # If all plans are completed, mark order as paid
+                    all_completed = all(plan.status == 'Completed' or plan.remaining_amount <= 0 for plan in all_plans)
+                    if all_completed:
+                        order.payment_status = 'Paid'
+                    else:
+                        order.payment_status = 'Partially Paid'
+                else:
+                    # No installment plans (full payment)
+                    order.payment_status = 'Paid'
+                
+                if order.payment_status == 'Paid':
+                    order.status = 'Processing'
+
+                notif = Notification(user_id=current_user.id, message=f"Payment received for Order #{order.id}.")
                 db.session.add(notif)
-                
                 db.session.commit()
-                flash('Payment successful! Your order has been placed.', 'success')
+                flash('Payment successful! Thank you.', 'success')
                 return redirect(url_for('dashboard_auth.dashboard'))
                 
         except Exception as e:
@@ -169,3 +259,46 @@ def verify_payment():
     db.session.commit()
     flash('Payment failed or was cancelled.', 'error')
     return redirect(url_for('checkout_auth.checkout'))
+
+
+@checkout_auth.route('/order/<int:order_id>/pay-next')
+@login_required
+def pay_next(order_id):
+    order = Order.query.filter_by(id=order_id, user_id=current_user.id).first_or_404()
+    plans = InstallmentPlan.query.filter_by(order_id=order.id).all()
+    
+    if not plans:
+        flash('No installment plan for this order.', 'error')
+        return redirect(url_for('dashboard_auth.dashboard'))
+
+    # Find all next unpaid scheduled payments across all plans
+    next_payments = []
+    for plan in plans:
+        if plan.remaining_amount > 0:
+            next_unpaid = InstallmentPayment.query.filter(
+                InstallmentPayment.plan_id == plan.id, 
+                InstallmentPayment.is_paid == False
+            ).order_by(InstallmentPayment.due_date).first()
+            if next_unpaid:
+                next_payments.append(next_unpaid)
+
+    if not next_payments:
+        flash('No pending installment payment found.', 'error')
+        return redirect(url_for('dashboard_auth.dashboard'))
+
+    # Calculate total of all next payments due
+    total_next_payment = sum(p.amount for p in next_payments)
+    
+    # Assign a single tx_ref for this batch of payments
+    import uuid
+    tx_ref = f"jimmy-{uuid.uuid4().hex[:10]}"
+    
+    # Link all these payments to the tx_ref
+    for payment in next_payments:
+        payment.payment_reference = tx_ref
+    
+    # Update order payment reference for verification
+    order.payment_reference = tx_ref
+    db.session.commit()
+
+    return render_template('payment.html', order=order, flw_public_key=os.getenv('FLW_PUBLIC_KEY'), pay_amount=round(total_next_payment, 2))

@@ -112,6 +112,22 @@ def add_product():
         is_featured = request.form.get('is_featured') == 'on'
         is_promoted = request.form.get('is_promoted') == 'on'
         is_installmental_payment = request.form.get('is_installmental_payment') == 'on'
+        try:
+            installment_base_percent = float(request.form.get('installment_base_percent') or 0)
+        except ValueError:
+            installment_base_percent = 0.0
+        try:
+            installment_months = int(request.form.get('installment_months') or 0)
+        except ValueError:
+            installment_months = 0
+        try:
+            installment_interval_days = int(request.form.get('installment_interval_days') or 30)
+        except ValueError:
+            installment_interval_days = 30
+        try:
+            installment_charge_percent = float(request.form.get('installment_charge_percent') or 0)
+        except ValueError:
+            installment_charge_percent = 0.0
         
         if not name or not price:
             flash('Name and Price are required.', 'error')
@@ -134,6 +150,10 @@ def add_product():
             is_featured=is_featured,
             is_promoted=is_promoted,
             is_installmental_payment=is_installmental_payment
+            ,installment_base_percent=installment_base_percent
+            ,installment_months=installment_months
+            ,installment_interval_days=installment_interval_days
+            ,installment_charge_percent=installment_charge_percent
         )
         db.session.add(new_product)
         db.session.commit()
@@ -205,6 +225,22 @@ def edit_product(product_id):
         product.is_featured = request.form.get('is_featured') == 'on'
         product.is_promoted = request.form.get('is_promoted') == 'on'
         product.is_installmental_payment = request.form.get('is_installmental_payment') == 'on'
+        try:
+            product.installment_base_percent = float(request.form.get('installment_base_percent') or 0)
+        except ValueError:
+            product.installment_base_percent = 0.0
+        try:
+            product.installment_months = int(request.form.get('installment_months') or 0)
+        except ValueError:
+            product.installment_months = 0
+        try:
+            product.installment_interval_days = int(request.form.get('installment_interval_days') or 30)
+        except ValueError:
+            product.installment_interval_days = 30
+        try:
+            product.installment_charge_percent = float(request.form.get('installment_charge_percent') or 0)
+        except ValueError:
+            product.installment_charge_percent = 0.0
         
         # Handle new images
         images = request.files.getlist('images')

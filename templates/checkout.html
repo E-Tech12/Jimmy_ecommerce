@@ -55,10 +55,10 @@
                 
                 <!-- Right Column (Summary) -->
                 <div class="lg:col-span-1">
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-24">
-                        <h3 class="font-bold text-gray-900 text-lg mb-4">Order Summary</h3>
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-24 space-y-6">
+                        <h3 class="font-bold text-gray-900 text-lg">Order Summary</h3>
                         
-                        <div class="space-y-4 mb-6">
+                        <div class="space-y-4">
                             {% for item in cart_items %}
                             <div class="flex justify-between items-center text-sm">
                                 <div class="flex items-center gap-2 text-gray-700">
@@ -70,22 +70,70 @@
                             {% endfor %}
                         </div>
                         
-                        <div class="space-y-3 mb-6 pt-4 border-t border-gray-100">
+                        <div class="space-y-3 pt-4 border-t border-gray-100">
                             <div class="flex justify-between text-gray-600">
                                 <span>Subtotal</span>
-                                <span class="font-medium text-gray-900">₦{{ "{:,.2f}".format(total) }}</span>
+                                <span class="font-medium text-gray-900" id="subtotal">₦{{ "{:,.2f}".format(total) }}</span>
+                            </div>
+                            <div id="surcharge-row" class="flex justify-between text-gray-600 hidden">
+                                <span>Installment Charge</span>
+                                <span class="font-medium text-orange-600" id="surcharge-amt">₦0.00</span>
                             </div>
                             <div class="flex justify-between text-gray-600">
                                 <span>Shipping</span>
                                 <span class="font-medium text-gray-900">Free</span>
                             </div>
                         </div>
-                        
-                        <div class="pt-4 border-t border-gray-100 mb-6">
-                            <div class="flex justify-between items-end">
-                                <span class="font-semibold text-gray-900">Total</span>
-                                <span class="text-2xl font-bold text-jimmy-red">₦{{ "{:,.2f}".format(total) }}</span>
+
+                        <!-- Payment Method Selector -->
+                        {% if installment_eligible_items %}
+                        <div class="pt-4 border-t border-gray-100">
+                            <p class="text-sm font-semibold text-gray-700 mb-3">Payment Method</p>
+                            <div class="space-y-2">
+                                <label class="flex items-center p-3 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-jimmy-red transition has-[:checked]:border-jimmy-red has-[:checked]:bg-red-50/30">
+                                    <input type="radio" name="payment_method" value="full" checked class="payment-method-radio w-4 h-4 text-jimmy-red">
+                                    <div class="ml-3">
+                                        <span class="block text-sm font-medium text-gray-900">Pay Full Amount</span>
+                                        <span class="block text-xs text-gray-500">₦{{ "{:,.2f}".format(total) }}</span>
+                                    </div>
+                                </label>
+                                <label class="flex items-center p-3 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-jimmy-red transition has-[:checked]:border-jimmy-red has-[:checked]:bg-red-50/30">
+                                    <input type="radio" name="payment_method" value="installment" class="payment-method-radio w-4 h-4 text-jimmy-red">
+                                    <div class="ml-3">
+                                        <span class="block text-sm font-medium text-gray-900">Pay Installmentally</span>
+                                        <span class="block text-xs text-gray-500" id="installment-preview">Split payments over time</span>
+                                    </div>
+                                </label>
                             </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Installment Breakdown (shown when installment selected) -->
+                        <div id="installment-breakdown" class="hidden pt-4 border-t border-gray-100 space-y-3 bg-blue-50 p-4 rounded-xl">
+                            <p class="text-sm font-semibold text-gray-700">Installment Breakdown</p>
+                            <div id="breakdown-content" class="text-xs space-y-2">
+                                <!-- Dynamically filled -->
+                            </div>
+                        </div>
+                        
+                        <div class="pt-4 border-t border-gray-100">
+                            <div class="flex justify-between items-end">
+                                <span class="font-semibold text-gray-900">Total to Pay Now</span>
+                                <span class="text-2xl font-bold text-jimmy-red" id="total-now">₦{{ "{:,.2f}".format(total) }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Payment Instructions -->
+                        <div class="pt-4 border-t border-gray-100 bg-blue-50 p-3 rounded-lg text-xs text-gray-700 space-y-2">
+                            <p class="font-semibold text-gray-900">How to Pay:</p>
+                            <ul class="list-disc list-inside space-y-1">
+                                <li>Click "Pay Securely" below</li>
+                                <li>You'll be redirected to Flutterwave</li>
+                                <li>Complete payment using your preferred method</li>
+                                {% if installment_eligible_items %}
+                                <li>If installmental: pay the base amount now, rest will be scheduled</li>
+                                {% endif %}
+                            </ul>
                         </div>
                         
                         <button type="submit" class="w-full block text-center bg-gray-900 text-white py-4 rounded-xl font-bold hover:bg-black transition shadow-sm flex items-center justify-center gap-2" {% if not addresses %}disabled title="Add an address first"{% endif %}>
@@ -98,4 +146,145 @@
         </form>
     </div>
 </div>
+
+<script>
+const totalAmount = {{ total }};
+
+// Prepare cart data for calculations
+const itemData = [
+    {% for item in cart_items %}
+    {
+        product_id: {{ item.product_id }},
+        name: "{{ item.product.name }}",
+        quantity: {{ item.quantity }},
+        price: {{ item.product.price }},
+        is_installmental: {{ item.product.is_installmental_payment | lower }},
+        base_percent: {{ item.product.installment_base_percent }},
+        months: {{ item.product.installment_months }},
+        interval_days: {{ item.product.installment_interval_days }},
+        charge_percent: {{ item.product.installment_charge_percent }}
+    },
+    {% endfor %}
+];
+
+function calculateInstallmentBreakdown() {
+    let breakdown = [];
+    let totalNow = 0;
+    let totalSurcharge = 0;
+
+    itemData.forEach(item => {
+        if (item.is_installmental) {
+            const itemTotal = item.price * item.quantity;
+            const withSurcharge = itemTotal * (1 + item.charge_percent / 100);
+            const baseAmount = withSurcharge * (item.base_percent / 100);
+            const remaining = withSurcharge - baseAmount;
+            const perMonth = item.months > 0 ? (remaining / item.months).toFixed(2) : 0;
+
+            breakdown.push({
+                name: item.name,
+                qty: item.quantity,
+                original: itemTotal,
+                surcharge: withSurcharge - itemTotal,
+                total: withSurcharge,
+                baseAmount: baseAmount,
+                remaining: remaining,
+                perMonth: perMonth,
+                months: item.months
+            });
+
+            totalNow += baseAmount;
+            totalSurcharge += withSurcharge - itemTotal;
+        } else {
+            totalNow += item.price * item.quantity;
+        }
+    });
+
+    return { breakdown, totalNow, totalSurcharge };
+}
+
+function updatePaymentSummary() {
+    const method = document.querySelector('input[name="payment_method"]:checked').value;
+    const breakdownDiv = document.getElementById('installment-breakdown');
+    const breakdownContent = document.getElementById('breakdown-content');
+    const totalNowEl = document.getElementById('total-now');
+    const surchargeRow = document.getElementById('surcharge-row');
+    const surchargeAmt = document.getElementById('surcharge-amt');
+
+    if (method === 'installment') {
+        const { breakdown, totalNow, totalSurcharge } = calculateInstallmentBreakdown();
+        
+        // Show surcharge
+        if (totalSurcharge > 0) {
+            surchargeRow.classList.remove('hidden');
+            surchargeAmt.textContent = `₦${totalSurcharge.toLocaleString('en-NG', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        }
+
+        // Build breakdown HTML
+        let html = '';
+        breakdown.forEach(item => {
+            html += `
+                <div class="bg-white p-2 rounded border border-blue-200">
+                    <p class="font-medium text-gray-900">${item.name}</p>
+                    <p class="text-gray-600">Qty: ${item.qty}</p>
+                    <p class="text-gray-600">
+                        Price: ₦${item.original.toLocaleString('en-NG', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}
+                    </p>
+
+                    ${item.surcharge > 0 ? `
+                    <p class="text-orange-600">
+                        + Charge (${item.charge_percent}%): ₦${item.surcharge.toLocaleString('en-NG', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}
+                    </p>
+                    ` : ''}
+
+                    <p class="text-gray-900 font-semibold">
+                        Total: ₦${item.total.toLocaleString('en-NG', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}
+                    </p>
+
+                    <hr class="my-1 border-blue-100">
+
+                    <p class="text-jimmy-red font-semibold">
+                        Pay Now: ₦${item.baseAmount.toLocaleString('en-NG', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })} (${item.base_percent}%)
+                    </p>
+
+                    <p class="text-gray-700">
+                        Then: ₦${item.perMonth}/month × ${item.months} months =
+                        ₦${item.remaining.toLocaleString('en-NG', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}
+                    </p>
+                </div>
+            `;
+        });
+        breakdownContent.innerHTML = html;
+        breakdownDiv.classList.remove('hidden');
+        totalNowEl.textContent = `₦${totalNow.toLocaleString('en-NG', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    } else {
+        // Full payment
+        breakdownDiv.classList.add('hidden');
+        surchargeRow.classList.add('hidden');
+        totalNowEl.textContent = `₦${totalAmount.toLocaleString('en-NG', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    }
+}
+
+// Attach event listeners
+document.querySelectorAll('.payment-method-radio').forEach(radio => {
+    radio.addEventListener('change', updatePaymentSummary);
+});
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', updatePaymentSummary);
+</script>
 {% endblock %}

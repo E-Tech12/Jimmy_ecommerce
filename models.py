@@ -63,6 +63,10 @@ class Product(db.Model):
     is_featured = db.Column(db.Boolean, default=False)
     is_promoted = db.Column(db.Boolean, default=False)
     is_installmental_payment = db.Column(db.Boolean, default=False)
+    installment_base_percent = db.Column(db.Float, default=0.0)
+    installment_months = db.Column(db.Integer, default=0)
+    installment_interval_days = db.Column(db.Integer, default=30)
+    installment_charge_percent = db.Column(db.Float, default=0.0)
     
     @property
     def available_stock(self):
@@ -88,10 +92,12 @@ class Order(db.Model):
     payment_reference = db.Column(db.String(255), nullable=True)
     payment_status = db.Column(db.String(50), default='Pending')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    stock_deducted = db.Column(db.Boolean, default=False)
     
     # Relationship to user and order items
     user = db.relationship('User', backref=db.backref('orders', lazy=True))
     address = db.relationship('Address')
+    installment_plan = db.relationship('InstallmentPlan', uselist=False, backref='order')
 
 class OrderItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -102,6 +108,32 @@ class OrderItem(db.Model):
 
     order = db.relationship('Order', backref=db.backref('items', lazy=True))
     product = db.relationship('Product')
+
+
+class InstallmentPlan(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)
+    total_amount = db.Column(db.Float, nullable=False)
+    base_amount = db.Column(db.Float, nullable=False)
+    remaining_amount = db.Column(db.Float, nullable=False)
+    months = db.Column(db.Integer, nullable=False)
+    interval_days = db.Column(db.Integer, nullable=False, default=30)
+    next_due_date = db.Column(db.DateTime, nullable=True)
+    status = db.Column(db.String(50), default='Active')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    payments = db.relationship('InstallmentPayment', backref='plan', lazy=True, cascade='all, delete-orphan')
+
+
+class InstallmentPayment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    plan_id = db.Column(db.Integer, db.ForeignKey('installment_plan.id'), nullable=False)
+    due_date = db.Column(db.DateTime, nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    is_paid = db.Column(db.Boolean, default=False)
+    paid_at = db.Column(db.DateTime, nullable=True)
+    payment_reference = db.Column(db.String(255), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class CartItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)

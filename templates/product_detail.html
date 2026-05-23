@@ -66,6 +66,42 @@
                         {% endif %}
                     </div>
 
+                    {% if product.is_installmental_payment and product.installment_base_percent and product.installment_months %}
+                    <!-- Installment Breakdown Preview -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+                        <p class="text-sm font-semibold text-gray-900 mb-3">Installment Breakdown Preview</p>
+                        {% set base_price = product.price %}
+                        {% set with_surcharge = base_price * (1 + product.installment_charge_percent / 100) %}
+                        {% set base_amount = with_surcharge * (product.installment_base_percent / 100) %}
+                        {% set remaining = with_surcharge - base_amount %}
+                        {% set per_month = remaining / product.installment_months %}
+                        <div class="text-xs space-y-2 text-gray-700">
+                            <div class="flex justify-between">
+                                <span>Product Price:</span>
+                                <span class="font-medium">₦{{ "{:,.2f}".format(base_price) }}</span>
+                            </div>
+                            {% if product.installment_charge_percent > 0 %}
+                            <div class="flex justify-between text-orange-600">
+                                <span>+ Installment Charge ({{ product.installment_charge_percent }}%):</span>
+                                <span class="font-medium">₦{{ "{:,.2f}".format(with_surcharge - base_price) }}</span>
+                            </div>
+                            <div class="flex justify-between font-semibold text-gray-900 border-t border-blue-300 pt-2">
+                                <span>Total if Installmental:</span>
+                                <span>₦{{ "{:,.2f}".format(with_surcharge) }}</span>
+                            </div>
+                            {% endif %}
+                            <div class="flex justify-between text-jimmy-red font-semibold pt-2 border-t border-blue-300">
+                                <span>Pay Now ({{ product.installment_base_percent }}%):</span>
+                                <span>₦{{ "{:,.2f}".format(base_amount) }}</span>
+                            </div>
+                            <div class="flex justify-between text-gray-600">
+                                <span>Then {{ product.installment_months }}x @ ₦{{ "{:,.2f}".format(per_month) }}/month:</span>
+                                <span class="font-medium">₦{{ "{:,.2f}".format(remaining) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <div class="prose prose-sm text-gray-600 mb-8 max-w-none">
                         <p>{{ product.description }}</p>
                     </div>
