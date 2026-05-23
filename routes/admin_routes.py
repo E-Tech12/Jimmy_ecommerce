@@ -80,20 +80,27 @@ if SUPABASE_URL and SUPABASE_KEY:
 def upload_to_supabase(file):
     if not supabase:
         return None
-        
+
     try:
         filename = f"{uuid.uuid4().hex}_{secure_filename(file.filename)}"
+        path = f"products/{filename}"
+
         file_bytes = file.read()
-        
-        # Reset file pointer if needed, but we already read it
-        res = supabase.storage.from_("products").upload(
-            filename,
+        file.seek(0)
+
+        supabase.storage.from_("e-com").upload(
+            path,
             file_bytes,
             {"content-type": file.content_type}
         )
-        
-        public_url = supabase.storage.from_("products").get_public_url(filename)
-        return {"filename": filename, "url": public_url}
+
+        public_url = supabase.storage.from_("e-com").get_public_url(path)
+
+        return {
+            "filename": filename,
+            "url": public_url
+        }
+
     except Exception as e:
         print(f"Supabase upload error: {e}")
         return None
